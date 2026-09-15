@@ -1,13 +1,13 @@
 let ps=[],cart=[];
 const productImages={
-  P001:"product-shampoo.jpg",
+  P001:"product-shampoo.jpeg",
   P002:"product-hair-serum.jpeg",
-  P003:"product-bhringraj-oil.jpg",
-  P004:"product-amla-oil.jpg",
-  P005:"product-ubtan-pack.jpg",
-  P006:"product-anti-hair-fall.jpg",
-  P007:"product-ubtan-soap.jpg",
-  P008:"product-kesuda-soap.jpg"
+  P003:"product-bhringraj-oil.jpeg",
+  P004:"product-amla-oil.jpeg",
+  P005:"product-ubtan-pack.jpeg",
+  P006:"product-anti-hair-fall.jpeg",
+  P007:"product-ubtan-soap.jpeg",
+  P008:"product-kesuda-soap.jpeg"
 };
 async function load(){ps=await(await fetch("/api/products")).json();render()}
 function render(){

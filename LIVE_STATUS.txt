@@ -1,0 +1,11 @@
+LEM WITON EKART — STEP 7 STATUS
+
+SOURCE PACKAGE: READY
+DEPLOYMENT CONFIG: READY
+DATABASE SCHEMA: READY
+RAZORPAY BACKEND: READY
+DOMAIN CONNECTION: NOT YET DONE
+PUBLIC LIVE WEBSITE: NOT YET DEPLOYED
+
+Reason: live deployment requires access/credentials for the external hosting, database,
+DNS/domain and payment accounts. This package is prepared for that deployment.

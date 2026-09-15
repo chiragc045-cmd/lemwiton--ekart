@@ -1,7 +1,7 @@
 let ps=[],cart=[];
 const productImages={
   P001:"product-shampoo.jpg",
-  P002:"product-hair-serum.jpg",
+  P002:"product-hair-serum.jpeg",
   P003:"product-bhringraj-oil.jpg",
   P004:"product-amla-oil.jpg",
   P005:"product-ubtan-pack.jpg",

@@ -6,7 +6,7 @@ header .logo{
 }
 
 header .logo img{
-  height:70px;
+  height:100px;
   width:auto;
   display:block;
   object-fit:contain;

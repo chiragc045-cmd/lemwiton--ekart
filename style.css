@@ -17,8 +17,8 @@ header nav{
 }
 
 .photo{
-  height:250px;
-  padding:15px;
+  height:230px;
+  padding:20px;
   background:#f1f0e8;
   display:flex;
   align-items:center;
@@ -27,8 +27,8 @@ header nav{
 }
 
 .photo img{
-  width:100%;
-  height:100%;
+  width:92%;
+  height:92%;
   object-fit:contain;
   display:block;
 }

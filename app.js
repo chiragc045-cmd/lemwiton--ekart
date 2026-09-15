@@ -7,7 +7,7 @@ const productImages={
   P005:"product-ubtan-pack.png",
   P006:"product-anti-hair-fall.jpeg",
   P007:"product-ubtan-soap.jpeg",
-  P008:"product-kesuda-soap.jpeg"
+  P008:"product-kesuda-soap.png"
 };
 async function load(){ps=await(await fetch("/api/products")).json();render()}
 function render(){

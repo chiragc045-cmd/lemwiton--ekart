@@ -2,9 +2,9 @@ let ps=[],cart=[];
 const productImages={
   P001:"product-shampoo.jpeg",
   P002:"product-hair-serum.jpeg",
-  P003:"product-bhringraj-oil.jpeg",
-  P004:"product-amla-oil.jpeg",
-  P005:"product-ubtan-pack.jpeg",
+  P003:"product-bhringraj-oil.png",
+  P004:"product-amla-oil.png",
+  P005:"product-ubtan-pack.png",
   P006:"product-anti-hair-fall.jpeg",
   P007:"product-ubtan-soap.jpeg",
   P008:"product-kesuda-soap.jpeg"

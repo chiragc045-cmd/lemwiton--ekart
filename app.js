@@ -29,14 +29,14 @@ function submitLogin(){
 
 
 const productImages={
- P001:"images/product-shampoo.jpg",
- P002:"images/product-hair-serum.jpg",
- P003:"images/product-bhringraj-oil.jpg",
- P004:"images/product-amla-oil.jpg",
- P005:"images/product-ubtan-pack.jpg",
- P006:"images/product-anti-hair-fall.jpg",
- P007:"images/product-ubtan-soap.jpg",
- P008:"images/product-kesuda-soap.jpg"
+  P001:"product-shampoo.jpeg",
+  P002:"product-hair-serum.jpeg",
+  P003:"product-bhringraj-oil.png",
+  P004:"product-amla-oil.png",
+  P005:"product-ubtan-pack.png",
+  P006:"product-anti-hair-fall.jpeg",
+  P007:"product-ubtan-soap.jpeg",
+  P008:"product-kesuda-soap.png"
 };
 
 async function load(){

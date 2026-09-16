@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lemwiton | Ayurvedic Care</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="top">🌿 Ayurvedic Care • Easy Shopping • WhatsApp Support</div>
+
+<header>
+  <a class="logo" href="#" onclick="closeMenu()">
+    <img src="lemwiton-logo.png" alt="Lemwiton Ayurvedic Care">
+  </a>
+  <nav>
+    <a href="#products">Products</a><a href="#offers">Offers</a><a href="#about">About</a><a href="#reviews">Reviews</a>
+  </nav>
+  <div class="header-actions">
+    <button class="cart-btn" onclick="openCart()">🛒 <span id="count">0</span></button>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" onclick="openMenu()"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- Mobile / side navigation -->
+<div id="menuShade" onclick="closeMenu()"></div>
+<aside id="sideMenu" aria-hidden="true">
+  <div class="menu-title"><b>Menu</b><button onclick="closeMenu()" aria-label="Close menu">✕</button></div>
+  <div class="menu-links">
+    <a href="#" onclick="closeMenu()">Home</a>
+    <a href="#products" onclick="closeMenu()">Best Seller</a>
+    <div class="menu-shop">
+      <button class="shop-toggle" onclick="toggleShop()">Shop <span id="shopArrow">⌄</span></button>
+      <div id="shopSubmenu" class="shop-submenu">
+        <a href="#products" onclick="setCategory('Hair Care');closeMenu()">Hair Care</a>
+        <a href="#products" onclick="setCategory('Skin Care');closeMenu()">Skin Care</a>
+        <a href="#products" onclick="setCategory('Soaps');closeMenu()">Soaps</a>
+        <a href="#products" onclick="setCategory('all');closeMenu()">All Products</a>
+      </div>
+    </div>
+    <a href="#about" onclick="closeMenu()">About</a>
+    <a href="#contact" onclick="closeMenu()">Contact</a>
+    <a href="#blog" onclick="closeMenu()">Blog</a>
+  </div>
+  <div class="menu-bottom">
+    <div class="social-row">
+      <a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="YouTube">▶</a><a href="#" aria-label="Email">✉</a>
+    </div>
+    <p>© Lemwiton Ayurvedic Care</p>
+  </div>
+</aside>
+
+<section class="hero"><div><small>LEMWITON • AYURVEDIC COLLECTION</small><h1>Nature’s Care<br><i>For A Healthier You</i></h1><p>Explore Lemwiton hair and skincare products in a clean, simple shopping experience.</p><a class="btn" href="#products">Shop Now →</a></div><div class="hero-art">🌿<div>LEMWITON<br><b>AYURVEDIC CARE</b></div></div></section>
+
+<section id="products" class="section"><div class="head"><div><small>OUR COLLECTION</small><h2>Shop Lemwiton</h2></div><span id="result"></span></div><div class="filters"><input id="search" oninput="render()" placeholder="Search products..."><select id="cat" onchange="render()"><option value="all">All Products</option><option>Hair Care</option><option>Skin Care</option><option>Soaps</option></select></div><div id="grid"></div></section>
+<section id="offers" class="offer"><div><small>SPECIAL OFFER</small><h2>Build your care routine.</h2><p>Choose products for your everyday routine.</p></div><a class="btn" href="#products">Explore Products</a></section>
+<section id="about" class="about section"><div class="about-art">🌱</div><div><small>ABOUT LEMWITON</small><h2>Traditional inspiration. Modern experience.</h2><p>Lemwiton brings Ayurvedic-inspired hair and skincare products together in a premium shopping experience.</p></div></section>
+<section id="reviews" class="section"><small>CUSTOMER REVIEWS</small><h2>What customers say</h2><div class="reviews"><article>★★★★★<p>“Beautiful packaging and easy ordering.”</p></article><article>★★★★★<p>“Easy to find products.”</p></article><article>★★★★★<p>“Helpful support.”</p></article></div></section>
+<section id="contact" class="contact"><h2>Contact Lemwiton</h2><p>For product and order support, connect with us on WhatsApp.</p></section>
+<section id="blog" class="section blog"><small>LEMWITON JOURNAL</small><h2>Ayurvedic Care Tips</h2><p>Useful hair and skincare information will be added here.</p></section>
+<footer><div class="logo">LEMWITON<small>AYURVEDIC CARE</small></div><p>Ayurvedic-inspired everyday care.</p><a href="admin.html">Admin</a></footer>
+
+<div id="shade" onclick="closeCart()"></div><aside id="drawer"><div class="drawer-head"><h2>Your Cart</h2><button onclick="closeCart()">✕</button></div><div id="items"></div><div class="total"><span>Total</span><b id="total">₹0</b></div><button class="checkout" onclick="checkout()">Proceed to Checkout</button></aside>
+<div id="modal"><div class="modalbox"><button class="x" onclick="closeModal()">✕</button><div id="view"></div></div></div>
+<script src="app.js"></script>
+</body>
+</html>

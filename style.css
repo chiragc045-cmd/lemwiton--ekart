@@ -29,3 +29,16 @@
 @media(max-width:500px){header{padding-left:3%;padding-right:0}.logo img{height:46px;max-width:140px}.header-actions{gap:4px}.icon-btn{width:28px;height:34px}.icon-btn svg{width:23px;height:23px}.whatsapp-btn svg{width:25px;height:25px}.login-btn{font-size:23px}.cart-btn{font-size:21px;padding:0!important;gap:2px}.cart-btn #count{font-size:15px}.menu-btn{width:30px!important;height:34px!important}.menu-btn span{width:25px;height:2px}}
 
 .contact-details{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px}.contact-details a{color:#fff;text-decoration:none}.address{margin-top:28px;max-width:520px}.address h3{margin:0 0 8px;font-size:18px}.address p{margin:0;line-height:1.7;color:#eef2ec}@media(max-width:500px){.contact-details{flex-direction:column;gap:10px}}
+.hero-image {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.hero-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}

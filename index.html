@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta id="lemwitonViewport" name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lemwiton | Ayurvedic Care</title>
+<link rel="stylesheet" href="style.css">
+
+
+
+
+
+
+<style id="viewport-width-fix">
+/* Final viewport-width fix: keep the page exactly as wide as the browser viewport. */
+html, body{
+  width:100% !important;
+  min-width:100% !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+body{
+  overflow-x:hidden !important;
+}
+.top, header, main, footer, .hero, .hero-image, .section, .offer, .contact, .blog{
+  width:100% !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+}
+.hero-image img{
+  max-width:100% !important;
+}
+@media (max-width:800px){
+  .section{
+    width:100% !important;
+    box-sizing:border-box !important;
+  }
+}
+</style>
+
+<style>
+html.lemwiton-real-desktop-site,
+html.lemwiton-real-desktop-site body{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  margin:0 !important;
+  overflow-x:hidden !important;
+}
+</style>
+
+
+<style id="no-right-strip-fix">
+html.lemwiton-real-desktop-site,
+html.lemwiton-real-desktop-site body,
+html.lemwiton-real-desktop-site .top,
+html.lemwiton-real-desktop-site header,
+html.lemwiton-real-desktop-site main,
+html.lemwiton-real-desktop-site footer,
+html.lemwiton-real-desktop-site .hero-image,
+html.lemwiton-real-desktop-site .section,
+html.lemwiton-real-desktop-site .offer,
+html.lemwiton-real-desktop-site .contact,
+html.lemwiton-real-desktop-site .blog{
+  width:100% !important;
+  max-width:none !important;
+  box-sizing:border-box !important;
+}
+html.lemwiton-real-desktop-site body{overflow-x:hidden !important;}
+</style>
+
+<script>
+(function(){
+  /* Chrome Android Desktop Site: use a slightly narrower desktop CSS
+     viewport so its physical rendering fills the complete phone screen. */
+  var ua = navigator.userAgent || "";
+  var touch = (navigator.maxTouchPoints || 0) > 0;
+  var desktopUA = !/Mobile/i.test(ua);
+  if (touch && desktopUA) {
+    var vp = document.getElementById("lemwitonViewport");
+    if (vp) vp.setAttribute("content", "width=915,initial-scale=1,viewport-fit=cover");
+    document.documentElement.classList.add("lemwiton-desktop-site");
+  }
+})();
+</script>
+<style>
+html.lemwiton-desktop-site,
+html.lemwiton-desktop-site body{
+  width:100% !important;
+  min-width:0 !important;
+  max-width:none !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow-x:hidden !important;
+}
+</style>
+
+
+<style id="mobile-2-column-final-fix">
+/* Keep Desktop Site layout unchanged.
+   On real mobile screens, restore the original 2-product grid. */
+@media (max-width:500px){
+  #grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    gap:10px !important;
+  }
+  #grid article{
+    min-width:0 !important;
+    padding:8px !important;
+  }
+  #grid .product-gallery{
+    height:180px !important;
+  }
+  #grid .product-gallery-arrow{
+    width:26px !important;
+    height:26px !important;
+    font-size:19px !important;
+  }
+  #grid article h3{
+    font-size:12px !important;
+  }
+  #grid article strong{
+    font-size:14px !important;
+  }
+  #grid article button{
+    padding:8px 4px !important;
+    font-size:11px !important;
+  }
+}
+</style>
+
+
+<style id="mobile-offer-strip-fix">
+/* Mobile: keep the current single-product layout.
+   Prevent the Special Offer flex row/button from creating horizontal overflow. */
+@media (max-width:500px){
+  #offers.offer{
+    width:calc(100% - 24px) !important;
+    max-width:calc(100% - 24px) !important;
+    margin-left:12px !important;
+    margin-right:12px !important;
+    padding:28px 22px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+  #offers.offer > div{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #offers.offer h2,
+  #offers.offer p{
+    max-width:100% !important;
+    overflow-wrap:anywhere !important;
+  }
+  #offers.offer .btn{
+    max-width:100% !important;
+    box-sizing:border-box !important;
+    margin-top:6px !important;
+  }
+}
+</style>
+
+</head>
+<body>
+<div class="top">🌿 Ayurvedic Care • Easy Shopping • WhatsApp Support</div>
+<header>
+  <a class="logo" href="#" onclick="closeMenu()">
+    <img src="lemwiton-logo.png" alt="Lemwiton Ayurvedic Care">
+  </a>
+  <nav>
+    <a href="#products">Products</a><a href="#offers">Offers</a><a href="#about">About</a><a href="#reviews">Reviews</a>
+  </nav>
+  <div class="header-actions">
+    <button class="icon-btn search-btn" onclick="openSearch()" aria-label="Search" title="Search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="M16 16l5 5"></path></svg>
+    </button>
+    <button class="icon-btn whatsapp-btn" onclick="openWhatsApp()" aria-label="WhatsApp" title="WhatsApp">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.2a8.4 8.4 0 0 1-12.4 7.4L3.5 20l1.5-4.3A8.4 8.4 0 1 1 20.5 11.2Z"></path><path d="M8.4 7.8c.2-.4.4-.4.7-.4h.5c.2 0 .4.1.5.4l.8 1.8c.1.2.1.4-.1.6l-.6.7c.6 1.1 1.5 2 2.6 2.6l.7-.6c.2-.2.4-.2.6-.1l1.8.8c.3.1.4.3.4.5v.5c0 .3-.1.5-.4.7-.4.2-1 .3-1.5.2-2.9-.7-5.4-3.2-6.1-6.1-.1-.6 0-1.1.2-1.6Z"></path></svg>
+    </button>
+    <button class="icon-btn login-btn" onclick="openLogin()" aria-label="Login" title="Login">
+      <span class="user-icon">♙</span>
+    </button>
+    <button class="cart-btn" onclick="openCart()" aria-label="Cart">🛒 <span id="count">0</span></button>
+    <button class="menu-btn" aria-label="Open menu" aria-expanded="false" onclick="openMenu()"><span></span><span></span><span></span></button>
+  </div>
+</header>
+<!-- Mobile / side navigation -->
+<div id="menuShade" onclick="closeMenu()"></div>
+<aside id="sideMenu" aria-hidden="true">
+  <div class="menu-title"><b>Menu</b><button onclick="closeMenu()" aria-label="Close menu">✕</button></div>
+  <div class="menu-links">
+    <a href="#" onclick="closeMenu()">Home</a>
+    <a href="#products" onclick="closeMenu()">Best Seller</a>
+    <div class="menu-shop">
+      <button class="shop-toggle" onclick="toggleShop()">Shop <span id="shopArrow">⌄</span></button>
+      <div id="shopSubmenu" class="shop-submenu">
+        <a href="#products" onclick="setCategory('Hair Care');closeMenu()">Hair Care</a>
+        <a href="#products" onclick="setCategory('Skin Care');closeMenu()">Skin Care</a>
+        <a href="#products" onclick="setCategory('Soaps');closeMenu()">Soaps</a>
+        <a href="#products" onclick="setCategory('all');closeMenu()">All Products</a>
+      </div>
+    </div>
+    <a href="#about" onclick="closeMenu()">About</a>
+    <a href="#contact" onclick="closeMenu()">Contact</a>
+    <a href="#blog" onclick="closeMenu()">Blog</a>
+  </div>
+  <div class="menu-bottom">
+    <div class="social-row">
+      <a href="#" aria-label="Instagram">◎</a><a href="#" aria-label="Facebook">f</a><a href="#" aria-label="YouTube">▶</a><a href="#" aria-label="Email">✉</a>
+    </div>
+    <p>© Lemwiton Ayurvedic Care</p>
+  </div>
+</aside>
+<section class="hero-image">
+  <img src="hero-banner.png" alt="Lemwiton Ayurveda Natural Care Collection">
+</section>
+<section id="products" class="section"><div class="head"><div><small>OUR COLLECTION</small><h2>Shop Lemwiton</h2></div><span id="result"></span></div><div class="filters"><input id="search" oninput="render()" placeholder="Search products..."><select id="cat" onchange="render()"><option value="all">All Products</option><option>Hair Care</option><option>Skin Care</option><option>Soaps</option></select></div><div id="grid"></div></section>
+<section id="offers" class="offer"><div><small>SPECIAL OFFER</small><h2>Build your care routine.</h2><p>Choose products for your everyday routine.</p></div><a class="btn" href="#products">Explore Products</a></section>
+
+<section id="about" class="about section">
+  <div class="about-art">
+    <img src="about-lemwiton-logo.png" alt="Lemwiton Ayurveda">
+  </div>
+  <div>
+    <small>ABOUT LEMWITON</small>
+    <h2>Traditional Inspiration. Modern Care.</h2>
+    <p>Lemwiton brings together the wisdom of Ayurveda and modern care to create thoughtfully crafted products for hair, skin, and everyday wellness.</p>
+    <p>Inspired by traditional Ayurvedic ingredients and natural care practices, our products are designed to become a simple and meaningful part of your daily self-care routine.</p>
+    <h3>Our Philosophy</h3>
+    <p>We believe everyday care can be simple, thoughtful, and inspired by nature. Lemwiton focuses on bringing traditional ingredients and modern product experience together for your daily routine.</p>
+    <p>Pure Ayurveda • Natural Care • Modern Living</p>
+  </div>
+</section>
+
+<section id="reviews" class="section"><small>CUSTOMER REVIEWS</small><h2>What customers say</h2><div class="reviews"><article>★★★★★<p>“Beautiful packaging and easy ordering.”</p></article><article>★★★★★<p>“Easy to find products.”</p></article><article>★★★★★<p>“Helpful support.”</p></article></div></section>
+<section id="contact" class="contact"><h2>Customer Care</h2><p>For product and order support, contact us.</p><div class="contact-details"><a href="tel:+919737403050">+91 9737403050</a><a href="tel:+919106279076">+91 9106279076</a><a href="mailto:lemwitonporcelano@gmail.com">lemwitonporcelano@gmail.com</a></div><div class="address"><h3>Lemwiton Porcelano LLP</h3><p>Survey No. 1277/1P2/P1/P2<br>Plot No. 05<br>Panchasar Road<br>Morbi 363641, Gujarat, Bharat</p></div></section>
+<section id="blog" class="section blog">
+  <small>LEMWITON JOURNAL</small>
+  <h2>Ayurvedic Care Tips</h2>
+  <p>Discover simple hair, skin and self-care practices inspired by Ayurveda and traditional Indian knowledge.</p>
+  <p>Hair Care • Skin Care • Natural Living</p>
+</section>
+<footer><div class="logo">LEMWITON<small>AYURVEDIC CARE</small></div><p>Ayurvedic-inspired everyday care.</p><a href="admin.html">Admin</a></footer>
+<div id="shade" onclick="closeCart()"></div><aside id="drawer"><div class="drawer-head"><h2>Your Cart</h2><button onclick="closeCart()">✕</button></div><div id="items"></div><div class="total"><span>Total</span><b id="total">₹0</b></div><button class="checkout" onclick="checkout()">Proceed to Checkout</button></aside>
+<div id="modal"><div class="modalbox"><button class="x" onclick="closeModal()">✕</button><div id="view"></div></div></div>
+<div id="loginModal" class="login-modal" aria-hidden="true"><div class="login-box"><button class="login-close" onclick="closeLogin()">✕</button><div class="login-icon">♙</div><h2>Login / Sign Up</h2><p>Enter your mobile number to continue.</p><input id="loginPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"><button class="login-submit" onclick="submitLogin()">Continue</button><small>OTP login can be connected when customer accounts are enabled.</small></div></div>
+<script src="app.js"></script>
+</body>
+</html>

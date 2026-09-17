@@ -31,6 +31,80 @@
 }
 </style>
 
+
+<style>
+/* Android "Desktop site" responsive fix:
+   keep real PC/desktop layout unchanged, but use the mobile/tablet
+   layout when a touch device requests the desktop version. */
+@media (pointer: coarse) and (min-width: 801px) and (max-width: 1100px) {
+  header{
+    padding-left:4% !important;
+    padding-right:0 !important;
+    gap:10px !important;
+  }
+  header nav{display:none !important;}
+  .logo img{height:48px !important;max-width:145px !important;}
+  .header-actions{
+    gap:7px !important;
+    margin-left:auto !important;
+    margin-right:0 !important;
+  }
+  .icon-btn{
+    width:30px !important;
+    height:36px !important;
+  }
+  .icon-btn svg{width:24px !important;height:24px !important;}
+  .whatsapp-btn svg{width:26px !important;height:26px !important;}
+  .login-btn{font-size:24px !important;}
+  .cart-btn{font-size:22px !important;height:36px !important;padding:0 2px !important;}
+  .cart-btn #count{font-size:16px !important;}
+  .menu-btn{
+    width:31px !important;height:36px !important;
+    padding:0 !important;
+  }
+  .menu-btn span{width:26px !important;}
+
+  .section{
+    padding:55px 6% !important;
+  }
+  #grid{
+    grid-template-columns:repeat(2,1fr) !important;
+    gap:16px !important;
+  }
+  .photo{height:230px !important;}
+
+  .about{
+    grid-template-columns:1fr !important;
+    gap:35px !important;
+    min-height:0 !important;
+    height:auto !important;
+    padding-top:40px !important;
+    padding-bottom:36px !important;
+  }
+  .about-art{
+    min-height:280px !important;
+    height:280px !important;
+  }
+
+  .reviews{
+    grid-template-columns:1fr !important;
+    gap:15px !important;
+  }
+
+  .hero{
+    flex-direction:column !important;
+    text-align:center !important;
+    gap:40px !important;
+  }
+  .hero h1{font-size:45px !important;}
+
+  .filters{
+    display:flex !important;
+    gap:10px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="top">🌿 Ayurvedic Care • Easy Shopping • WhatsApp Support</div>

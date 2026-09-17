@@ -98,6 +98,15 @@ async function initDatabase(){
        ON CONFLICT(id) DO NOTHING`,p
     );
   }
+  const adminUsername=process.env.ADMIN_USERNAME||"admin";
+  const adminPassword=process.env.ADMIN_PASSWORD||"Lemwiton@Admin2026";
+  const adminHash=await bcrypt.hash(adminPassword,12);
+  await pool.query(
+    `INSERT INTO admins(username,password_hash) VALUES($1,$2)
+     ON CONFLICT(username) DO UPDATE SET password_hash=EXCLUDED.password_hash`,
+    [adminUsername,adminHash]
+  );
+  console.log("Admin account ready: "+adminUsername);
   console.log("Database ready: tables created and 8 products seeded.");
 }
 

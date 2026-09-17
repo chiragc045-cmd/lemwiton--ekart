@@ -74,6 +74,13 @@ async function initDatabase(){
       quantity INTEGER NOT NULL CHECK(quantity>0)
     );
   `);
+  // Existing Render databases may already have a customers table from the older version.
+  // CREATE TABLE IF NOT EXISTS does not add new columns to an existing table, so
+  // explicitly add the password_hash column for the password-login upgrade.
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS password_hash TEXT`);
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMPTZ`);
+  await pool.query(`ALTER TABLE customers ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`);
+
   const products=[
     ["P001","Lemwiton Herbal Shampoo",44900,"250 ml","Hair Care"],
     ["P002","Lemwiton Fully Vital Hair Serum",35000,"15 ml","Hair Care"],

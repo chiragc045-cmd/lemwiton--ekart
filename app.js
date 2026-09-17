@@ -1,4 +1,5 @@
 let ps=[],cart=[];
+let customerSession=localStorage.getItem('lemwitonCustomerToken')||'';
 
 // Header actions
 function openSearch(){
@@ -20,17 +21,69 @@ function openWhatsApp(){
 function openLogin(){
   const m=document.getElementById('loginModal');
   m.classList.add('show'); m.setAttribute('aria-hidden','false');
+  showLoginPhoneStep();
 }
-
 function closeLogin(){
   const m=document.getElementById('loginModal');
   m.classList.remove('show'); m.setAttribute('aria-hidden','true');
 }
-
-function submitLogin(){
-  const phone=document.getElementById('loginPhone').value.trim();
+function showLoginPhoneStep(){
+  const box=document.querySelector('#loginModal .login-box');
+  if(!box)return;
+  box.innerHTML=`
+    <button class="login-close" onclick="closeLogin()">✕</button>
+    <div class="login-icon">♙</div>
+    <h2>Login / Sign Up</h2>
+    <p>Enter your mobile number to continue.</p>
+    <input id="loginPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number">
+    <button class="login-submit" onclick="submitLogin()">Send OTP</button>
+    <small>Login is optional. You can also purchase directly without login.</small>`;
+}
+async function submitLogin(){
+  const phone=(document.getElementById('loginPhone')?.value||'').replace(/\D/g,'');
   if(!/^[0-9]{10}$/.test(phone)) return alert('Please enter a valid 10-digit mobile number.');
-  alert('Login / OTP will be connected in the customer account step.');
+  const btn=document.querySelector('#loginModal .login-submit');
+  if(btn){btn.disabled=true;btn.textContent='Sending OTP...';}
+  try{
+    const r=await fetch('/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'Unable to send OTP');
+    showOtpStep(phone);
+  }catch(e){
+    alert(e.message);
+    if(btn){btn.disabled=false;btn.textContent='Send OTP';}
+  }
+}
+function showOtpStep(phone){
+  const box=document.querySelector('#loginModal .login-box');
+  if(!box)return;
+  box.innerHTML=`
+    <button class="login-close" onclick="closeLogin()">✕</button>
+    <div class="login-icon">♙</div>
+    <h2>Verify Mobile</h2>
+    <p>Enter the OTP sent to +91 ${phone}.</p>
+    <input id="loginOtp" type="tel" inputmode="numeric" maxlength="6" placeholder="6-digit OTP">
+    <button class="login-submit" onclick="verifyLoginOtp('${phone}')">Verify & Login</button>
+    <button type="button" class="login-resend" onclick="showLoginPhoneStep()">Use another number</button>`;
+  setTimeout(()=>document.getElementById('loginOtp')?.focus(),50);
+}
+async function verifyLoginOtp(phone){
+  const otp=(document.getElementById('loginOtp')?.value||'').replace(/\D/g,'');
+  if(!/^\d{4,6}$/.test(otp)) return alert('Please enter the OTP you received.');
+  const btn=document.querySelector('#loginModal .login-submit');
+  if(btn){btn.disabled=true;btn.textContent='Verifying...';}
+  try{
+    const r=await fetch('/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,otp})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'Invalid OTP');
+    customerSession=d.token||'';
+    if(customerSession)localStorage.setItem('lemwitonCustomerToken',customerSession);
+    closeLogin();
+    alert('Login successful.');
+  }catch(e){
+    alert(e.message);
+    if(btn){btn.disabled=false;btn.textContent='Verify & Login';}
+  }
 }
 
 /* Main product images.
@@ -46,7 +99,6 @@ const productImages={
   P007:["product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg"],
   P008:["product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png"]
 };
-
 async function load(){
   ps=await(await fetch("/api/products")).json();
   render();
@@ -58,7 +110,6 @@ function render(){
   let list=ps.filter(p=>(c==="all"||p.category===c)&&p.name.toLowerCase().includes(q));
 
   document.getElementById('result').textContent=list.length+" Products";
-
   document.getElementById('grid').innerHTML=list.map(p=>{
     const imgs=productImages[p.id]||[""];
     return `
@@ -70,7 +121,6 @@ function render(){
                 <img src="${src}" alt="${p.name}" loading="lazy">
               </div>`).join("")}
           </div>
-
           <button class="product-gallery-arrow product-gallery-prev" type="button" aria-label="Previous image">‹</button>
           <button class="product-gallery-arrow product-gallery-next" type="button" aria-label="Next image">›</button>
 
@@ -80,7 +130,6 @@ function render(){
             `).join("")}
           </div>
         </div>
-
         <h3>${p.name}</h3>
         <small>${p.size} • ${p.category}</small>
         <strong>₹${p.price}</strong>
@@ -91,7 +140,6 @@ function render(){
 
   initProductGalleries();
 }
-
 function initProductGalleries(){
   document.querySelectorAll('[data-product-gallery]').forEach(gallery=>{
     const track=gallery.querySelector('.product-gallery-track');
@@ -100,17 +148,17 @@ function initProductGalleries(){
     const prev=gallery.querySelector('.product-gallery-prev');
     const next=gallery.querySelector('.product-gallery-next');
     let current=0, startX=0, dragging=false;
-
     function show(index){
       current=(index+slides.length)%slides.length;
-      track.style.transform=`translateX(-${current*100}%)`;
-      dots.forEach((dot,i)=>dot.classList.toggle('active',i===current));
+      track.style.transform=`translate3d(-${current*100}%,0,0)`;
+      dots.forEach((dot,i)=>{
+        dot.classList.toggle('active',i===current);
+        dot.setAttribute('aria-current',i===current?'true':'false');
+      });
     }
-
     prev.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();show(current-1);});
     next.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();show(current+1);});
     dots.forEach((dot,i)=>dot.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();show(i);}));
-
     gallery.addEventListener('touchstart',e=>{
       if(e.touches.length!==1)return;
       startX=e.touches[0].clientX; dragging=true;
@@ -130,21 +178,18 @@ function setCategory(value){
   document.getElementById('cat').value=value;
   render();
 }
-
 function openMenu(){
   document.getElementById('sideMenu').classList.add('show');
   document.getElementById('menuShade').classList.add('show');
   document.querySelector('.menu-btn').setAttribute('aria-expanded','true');
   document.getElementById('sideMenu').setAttribute('aria-hidden','false');
 }
-
 function closeMenu(){
   document.getElementById('sideMenu').classList.remove('show');
   document.getElementById('menuShade').classList.remove('show');
   const b=document.querySelector('.menu-btn'); if(b)b.setAttribute('aria-expanded','false');
   const m=document.getElementById('sideMenu'); if(m)m.setAttribute('aria-hidden','true');
 }
-
 function toggleShop(){
   const s=document.getElementById('shopSubmenu');
   s.classList.toggle('show');
@@ -163,7 +208,6 @@ function ch(id,n){
   if(x.qty<1)cart=cart.filter(a=>a.productId!==id);
   draw();
 }
-
 function draw(){
   document.getElementById('count').textContent=cart.reduce((s,x)=>s+x.qty,0);
   document.getElementById('items').innerHTML=cart.length?
@@ -172,7 +216,6 @@ function draw(){
       return `<div class="row"><b>${p.name}</b><br>₹${p.price} × ${x.qty}<div><button onclick="ch('${p.id}',-1)">−</button><button onclick="ch('${p.id}',1)">+</button></div></div>`
     }).join("")
     :"Cart is empty.";
-
   document.getElementById('total').textContent="₹"+cart.reduce(
     (s,x)=>s+ps.find(p=>p.id===x.productId).price*x.qty,0
   );
@@ -185,8 +228,8 @@ function closeModal(){modal.classList.remove("show")}
 function checkout(){
   if(!cart.length)return alert("Add a product first");
   closeCart();
-
   view.innerHTML=`<h2>Checkout</h2><form id="cf">
+    <p style="margin:0 0 10px;color:#53635a;font-size:14px">You can purchase without login.</p>
     <input name="name" required placeholder="Full Name">
     <input name="phone" required pattern="[0-9]{10}" placeholder="Mobile Number">
     <input name="email" type="email" placeholder="Email (optional)">
@@ -201,7 +244,6 @@ function checkout(){
     <div class="summary">Total: <b>₹${cart.reduce((s,x)=>s+ps.find(p=>p.id===x.productId).price*x.qty,0)}</b></div>
     <button>Place Order</button>
   </form>`;
-
   modal.classList.add("show");
   cf.onsubmit=placeOrder;
 }
@@ -212,13 +254,12 @@ async function placeOrder(e){
 
   let r=await fetch("/api/orders",{
     method:"POST",
-    headers:{"Content-Type":"application/json"},
+    headers:{"Content-Type":"application/json",...(customerSession?{"Authorization":"Bearer "+customerSession}:{})},
     body:JSON.stringify({customer,items:cart,paymentMethod:customer.paymentMethod})
   });
 
   let d=await r.json();
   if(!r.ok)return alert(d.error);
-
   view.innerHTML=`<div class="success">✓
     <h2>Order Created</h2>
     <p>Order ID: <b>${d.orderId}</b></p>

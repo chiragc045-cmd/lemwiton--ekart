@@ -21,69 +21,113 @@ function openWhatsApp(){
 function openLogin(){
   const m=document.getElementById('loginModal');
   m.classList.add('show'); m.setAttribute('aria-hidden','false');
-  showLoginPhoneStep();
+  showLoginStep();
 }
 function closeLogin(){
   const m=document.getElementById('loginModal');
   m.classList.remove('show'); m.setAttribute('aria-hidden','true');
 }
-function showLoginPhoneStep(){
-  const box=document.querySelector('#loginModal .login-box');
-  if(!box)return;
+function loginMarkup(active='login',message=''){
+  return `
+    <button class="login-close" onclick="closeLogin()">✕</button>
+    <div class="login-icon">♙</div>
+    <div class="login-tabs">
+      <button type="button" class="login-tab ${active==='login'?'active':''}" onclick="showLoginStep()">Login</button>
+      <button type="button" class="login-tab ${active==='signup'?'active':''}" onclick="showSignupStep()">Create Account</button>
+    </div>
+    ${message?`<div class="login-message">${message}</div>`:''}`;
+}
+function showLoginStep(){
+  const box=document.querySelector('#loginModal .login-box'); if(!box)return;
+  box.innerHTML=loginMarkup('login')+`
+    <h2>Customer Login</h2>
+    <p>Login with your registered mobile number and password.</p>
+    <input id="loginPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel">
+    <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+    <button class="login-submit" onclick="submitLogin()">Login</button>
+    <button type="button" class="login-link" onclick="showForgotPasswordStep()">Forgot Password?</button>
+    <small>Login is optional. You can also purchase directly without login.</small>`;
+}
+function showSignupStep(){
+  const box=document.querySelector('#loginModal .login-box'); if(!box)return;
+  box.innerHTML=loginMarkup('signup')+`
+    <h2>Create Account</h2>
+    <p>Create your Lemwiton customer account.</p>
+    <input id="signupName" type="text" placeholder="Full Name" autocomplete="name">
+    <input id="signupPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" autocomplete="tel">
+    <input id="signupEmail" type="email" placeholder="Email (optional)" autocomplete="email">
+    <input id="signupPassword" type="password" placeholder="Create Password" autocomplete="new-password">
+    <input id="signupPassword2" type="password" placeholder="Confirm Password" autocomplete="new-password">
+    <button class="login-submit" onclick="submitSignup()">Create Account</button>
+    <small>After creating an account, you can login anytime. No OTP is required.</small>`;
+}
+function showForgotPasswordStep(){
+  const box=document.querySelector('#loginModal .login-box'); if(!box)return;
   box.innerHTML=`
     <button class="login-close" onclick="closeLogin()">✕</button>
     <div class="login-icon">♙</div>
-    <h2>Login / Sign Up</h2>
-    <p>Enter your mobile number to continue.</p>
-    <input id="loginPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number">
-    <button class="login-submit" onclick="submitLogin()">Send OTP</button>
-    <small>Login is optional. You can also purchase directly without login.</small>`;
+    <h2>Forgot Password</h2>
+    <p>Enter your registered mobile number and email, then choose a new password.</p>
+    <input id="forgotPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="Registered mobile number" autocomplete="tel">
+    <input id="forgotEmail" type="email" placeholder="Registered email" autocomplete="email">
+    <input id="forgotPassword" type="password" placeholder="New Password" autocomplete="new-password">
+    <input id="forgotPassword2" type="password" placeholder="Confirm New Password" autocomplete="new-password">
+    <button class="login-submit" onclick="submitForgotPassword()">Reset Password</button>
+    <button type="button" class="login-link" onclick="showLoginStep()">Back to Login</button>`;
+}
+function validPhone(v){return /^[0-9]{10}$/.test(String(v||'').replace(/\D/g,''));}
+function validPassword(v){return String(v||'').length>=6;}
+async function postAuth(url,body,successMessage){
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||'Please try again.');
+  if(d.token){
+    customerSession=d.token;
+    localStorage.setItem('lemwitonCustomerToken',customerSession);
+  }
+  if(successMessage)alert(successMessage);
+  return d;
 }
 async function submitLogin(){
   const phone=(document.getElementById('loginPhone')?.value||'').replace(/\D/g,'');
-  if(!/^[0-9]{10}$/.test(phone)) return alert('Please enter a valid 10-digit mobile number.');
+  const password=document.getElementById('loginPassword')?.value||'';
+  if(!validPhone(phone))return alert('Please enter a valid 10-digit mobile number.');
+  if(!password)return alert('Please enter your password.');
   const btn=document.querySelector('#loginModal .login-submit');
-  if(btn){btn.disabled=true;btn.textContent='Sending OTP...';}
-  try{
-    const r=await fetch('/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
-    const d=await r.json();
-    if(!r.ok) throw new Error(d.error||'Unable to send OTP');
-    showOtpStep(phone);
-  }catch(e){
-    alert(e.message);
-    if(btn){btn.disabled=false;btn.textContent='Send OTP';}
-  }
+  if(btn){btn.disabled=true;btn.textContent='Logging in...';}
+  try{await postAuth('/api/auth/login',{phone,password},'Login successful.');closeLogin();}
+  catch(e){alert(e.message);if(btn){btn.disabled=false;btn.textContent='Login';}}
 }
-function showOtpStep(phone){
-  const box=document.querySelector('#loginModal .login-box');
-  if(!box)return;
-  box.innerHTML=`
-    <button class="login-close" onclick="closeLogin()">✕</button>
-    <div class="login-icon">♙</div>
-    <h2>Verify Mobile</h2>
-    <p>Enter the OTP sent to +91 ${phone}.</p>
-    <input id="loginOtp" type="tel" inputmode="numeric" maxlength="6" placeholder="6-digit OTP">
-    <button class="login-submit" onclick="verifyLoginOtp('${phone}')">Verify & Login</button>
-    <button type="button" class="login-resend" onclick="showLoginPhoneStep()">Use another number</button>`;
-  setTimeout(()=>document.getElementById('loginOtp')?.focus(),50);
-}
-async function verifyLoginOtp(phone){
-  const otp=(document.getElementById('loginOtp')?.value||'').replace(/\D/g,'');
-  if(!/^\d{4,6}$/.test(otp)) return alert('Please enter the OTP you received.');
+async function submitSignup(){
+  const name=(document.getElementById('signupName')?.value||'').trim();
+  const phone=(document.getElementById('signupPhone')?.value||'').replace(/\D/g,'');
+  const email=(document.getElementById('signupEmail')?.value||'').trim();
+  const password=document.getElementById('signupPassword')?.value||'';
+  const password2=document.getElementById('signupPassword2')?.value||'';
+  if(!name)return alert('Please enter your name.');
+  if(!validPhone(phone))return alert('Please enter a valid 10-digit mobile number.');
+  if(!validPassword(password))return alert('Password must be at least 6 characters.');
+  if(password!==password2)return alert('Passwords do not match.');
   const btn=document.querySelector('#loginModal .login-submit');
-  if(btn){btn.disabled=true;btn.textContent='Verifying...';}
+  if(btn){btn.disabled=true;btn.textContent='Creating...';}
+  try{await postAuth('/api/auth/register',{name,phone,email,password},'Account created successfully.');closeLogin();}
+  catch(e){alert(e.message);if(btn){btn.disabled=false;btn.textContent='Create Account';}}
+}
+async function submitForgotPassword(){
+  const phone=(document.getElementById('forgotPhone')?.value||'').replace(/\D/g,'');
+  const email=(document.getElementById('forgotEmail')?.value||'').trim();
+  const password=document.getElementById('forgotPassword')?.value||'';
+  const password2=document.getElementById('forgotPassword2')?.value||'';
+  if(!validPhone(phone))return alert('Please enter your registered 10-digit mobile number.');
+  if(!email)return alert('Please enter your registered email.');
+  if(!validPassword(password))return alert('Password must be at least 6 characters.');
+  if(password!==password2)return alert('Passwords do not match.');
+  const btn=document.querySelector('#loginModal .login-submit');
+  if(btn){btn.disabled=true;btn.textContent='Resetting...';}
   try{
-    const r=await fetch('/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,otp})});
-    const d=await r.json();
-    if(!r.ok) throw new Error(d.error||'Invalid OTP');
-    customerSession=d.token||'';
-    if(customerSession)localStorage.setItem('lemwitonCustomerToken',customerSession);
-    closeLogin();
-    alert('Login successful.');
-  }catch(e){
-    alert(e.message);
-    if(btn){btn.disabled=false;btn.textContent='Verify & Login';}
-  }
+    await postAuth('/api/auth/forgot-password',{phone,email,newPassword:password},'Password reset successfully.');
+    showLoginStep();
+  }catch(e){alert(e.message);if(btn){btn.disabled=false;btn.textContent='Reset Password';}}
 }
 
 /* Main product images.

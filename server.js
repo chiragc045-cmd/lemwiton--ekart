@@ -8,7 +8,6 @@ const pool=new Pool({
 app.use(express.json());
 app.use(express.static(__dirname));
 const sessions=new Map();
-const otpSessions=new Map();
 const rp=(process.env.RAZORPAY_KEY_ID&&process.env.RAZORPAY_KEY_SECRET)
   ?new (require("razorpay"))({key_id:process.env.RAZORPAY_KEY_ID,key_secret:process.env.RAZORPAY_KEY_SECRET})
   :null;
@@ -43,6 +42,7 @@ async function initDatabase(){
       phone TEXT UNIQUE NOT NULL,
       name TEXT,
       email TEXT,
+      password_hash TEXT,
       last_login_at TIMESTAMPTZ,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -114,50 +114,63 @@ function normalizePhone(phone){
   return p.length===10?"+91"+p:p.startsWith("91")?"+"+p:p.startsWith("+")?p:"";
 }
 
-async function twilioVerify(path,params){
-  const sid=process.env.TWILIO_ACCOUNT_SID;
-  const token=process.env.TWILIO_AUTH_TOKEN;
-  const service=process.env.TWILIO_VERIFY_SERVICE_SID;
-  if(!sid||!token||!service)throw new Error("OTP service is not configured yet. Add Twilio Verify settings in Render Environment Variables.");
-  const body=new URLSearchParams(params);
-  const r=await fetch(`https://verify.twilio.com/v2/Services/${service}/${path}`,{
-    method:"POST",
-    headers:{"Authorization":"Basic "+Buffer.from(`${sid}:${token}`).toString("base64"),"Content-Type":"application/x-www-form-urlencoded"},
-    body
-  });
-  const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error(d.message||"OTP service error");
-  return d;
-}
-
-app.post("/api/auth/send-otp",async(q,s)=>{
+app.post("/api/auth/register",async(q,s)=>{
+  const name=String(q.body?.name||"").trim();
   const phone=normalizePhone(q.body?.phone);
-  if(!phone)return s.status(400).json({error:"Enter a valid 10-digit mobile number."});
+  const email=String(q.body?.email||"").trim().toLowerCase()||null;
+  const password=String(q.body?.password||"");
+  if(!name)return s.status(400).json({error:"Name is required"});
+  if(!phone)return s.status(400).json({error:"Enter a valid 10-digit mobile number"});
+  if(password.length<6)return s.status(400).json({error:"Password must be at least 6 characters"});
   try{
-    const d=await twilioVerify("Verifications",{To:phone,Channel:"sms"});
-    otpSessions.set(phone,{sentAt:Date.now()});
-    s.json({ok:true,status:d.status});
-  }catch(e){s.status(400).json({error:e.message})}
-});
-
-app.post("/api/auth/verify-otp",async(q,s)=>{
-  const phone=normalizePhone(q.body?.phone),otp=String(q.body?.otp||"").trim();
-  if(!phone||!/^[0-9]{4,10}$/.test(otp))return s.status(400).json({error:"Enter the OTP sent to your mobile."});
-  try{
-    const d=await twilioVerify("VerificationCheck",{To:phone,Code:otp});
-    if(d.status!=="approved")return s.status(401).json({error:"Invalid or expired OTP."});
+    const passwordHash=await bcrypt.hash(password,12);
     const id="CU"+crypto.createHash("sha256").update(phone).digest("hex").slice(0,20).toUpperCase();
     const {rows}=await pool.query(
-      `INSERT INTO customers(id,phone,last_login_at,updated_at)
-       VALUES($1,$2,NOW(),NOW())
-       ON CONFLICT(phone) DO UPDATE SET last_login_at=NOW(),updated_at=NOW()
-       RETURNING id,phone,name,email`,[id,phone]
+      `INSERT INTO customers(id,phone,name,email,password_hash,updated_at)
+       VALUES($1,$2,$3,$4,$5,NOW())
+       ON CONFLICT(phone) DO UPDATE SET
+         name=EXCLUDED.name,email=EXCLUDED.email,password_hash=EXCLUDED.password_hash,updated_at=NOW()
+       RETURNING id,phone,name,email,last_login_at,created_at`,
+      [id,phone,name,email,passwordHash]
     );
     const token=crypto.randomBytes(32).toString("hex");
     sessions.set(token,{type:"customer",id:rows[0].id,phone:rows[0].phone,at:Date.now()});
-    otpSessions.delete(phone);
-    s.json({ok:true,token,customer:rows[0]});
-  }catch(e){s.status(400).json({error:e.message})}
+    s.status(201).json({ok:true,token,customer:rows[0]});
+  }catch(e){s.status(400).json({error:e.message||"Unable to create account"})}
+});
+
+app.post("/api/auth/login",async(q,s)=>{
+  const phone=normalizePhone(q.body?.phone);
+  const password=String(q.body?.password||"");
+  if(!phone||!password)return s.status(400).json({error:"Mobile number and password are required"});
+  try{
+    const {rows}=await pool.query("SELECT * FROM customers WHERE phone=$1",[phone]);
+    const customer=rows[0];
+    if(!customer||!customer.password_hash||!(await bcrypt.compare(password,customer.password_hash)))
+      return s.status(401).json({error:"Invalid mobile number or password"});
+    const updated=await pool.query(
+      "UPDATE customers SET last_login_at=NOW(),updated_at=NOW() WHERE id=$1 RETURNING id,phone,name,email,last_login_at,created_at",
+      [customer.id]
+    );
+    const token=crypto.randomBytes(32).toString("hex");
+    sessions.set(token,{type:"customer",id:customer.id,phone:customer.phone,at:Date.now()});
+    s.json({ok:true,token,customer:updated.rows[0]});
+  }catch(e){s.status(500).json({error:"Login error"})}
+});
+
+app.post("/api/auth/forgot-password",async(q,s)=>{
+  const phone=normalizePhone(q.body?.phone);
+  const email=String(q.body?.email||"").trim().toLowerCase();
+  const newPassword=String(q.body?.newPassword||"");
+  if(!phone||!email)return s.status(400).json({error:"Registered mobile number and email are required"});
+  if(newPassword.length<6)return s.status(400).json({error:"Password must be at least 6 characters"});
+  try{
+    const {rows}=await pool.query("SELECT id FROM customers WHERE phone=$1 AND LOWER(COALESCE(email,''))=$2",[phone,email]);
+    if(!rows[0])return s.status(404).json({error:"No customer account matches this mobile number and email"});
+    const hash=await bcrypt.hash(newPassword,12);
+    await pool.query("UPDATE customers SET password_hash=$1,updated_at=NOW() WHERE id=$2",[hash,rows[0].id]);
+    s.json({ok:true});
+  }catch(e){s.status(500).json({error:"Unable to reset password"})}
 });
 
 app.get("/api/auth/me",auth,async(q,s)=>{

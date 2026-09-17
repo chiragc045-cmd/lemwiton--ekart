@@ -270,6 +270,15 @@ html.lemwiton-desktop-site body{
 }
 </style>
 
+
+<style id="optional-password-login-styles">
+.login-tabs{display:flex;gap:8px;margin:0 0 18px;border-bottom:1px solid #e4e8e4;padding-bottom:8px}
+.login-tab{flex:1;border:0;background:transparent;padding:9px 6px;font:inherit;cursor:pointer;color:#66736b}
+.login-tab.active{color:#315a45;font-weight:700;border-bottom:2px solid #315a45}
+.login-link{display:block;width:100%;border:0;background:transparent;color:#315a45;margin:10px 0 2px;padding:6px;cursor:pointer;font:inherit}
+.login-message{padding:9px 11px;margin-bottom:12px;border-radius:8px;background:#f1f6f2;color:#315a45;font-size:13px}
+.login-box input{box-sizing:border-box}
+</style>
 </head>
 <body>
 <div class="top">🌿 Ayurvedic Care • Easy Shopping • WhatsApp Support</div>
@@ -353,8 +362,8 @@ html.lemwiton-desktop-site body{
 <footer><div class="logo">LEMWITON<small>AYURVEDIC CARE</small></div><p>Ayurvedic-inspired everyday care.</p><a href="admin.html">Admin</a></footer>
 <div id="shade" onclick="closeCart()"></div><aside id="drawer"><div class="drawer-head"><h2>Your Cart</h2><button onclick="closeCart()">✕</button></div><div id="items"></div><div class="total"><span>Total</span><b id="total">₹0</b></div><button class="checkout" onclick="checkout()">Proceed to Checkout</button></aside>
 <div id="modal"><div class="modalbox"><button class="x" onclick="closeModal()">✕</button><div id="view"></div></div></div>
-<div id="loginModal" class="login-modal" aria-hidden="true"><div class="login-box"><button class="login-close" onclick="closeLogin()">✕</button><div class="login-icon">♙</div><h2>Login / Sign Up</h2><p>Enter your mobile number to continue.</p><input id="loginPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number"><button class="login-submit" onclick="submitLogin()">Continue</button><small>Login is optional. You can purchase directly without login.</small></div></div>
-<script src="app.js?v=final-dots-sync-20260918"></script>
+<div id="loginModal" class="login-modal" aria-hidden="true"><div class="login-box"><button class="login-close" onclick="closeLogin()">✕</button><div class="login-icon">♙</div><h2>Customer Login</h2><p>Login with your mobile number and password.</p></div></div>
+<script src="app.js?v=password-login-20260918"></script>
 
 <script id="mobile-true-circle-runtime-fix">
 (function(){

@@ -8,7 +8,7 @@ function openSearch(){
   setTimeout(()=>document.getElementById('search')?.focus(),350);
 }
 
-const WHATSAPP_NUMBER = "";
+const WHATSAPP_NUMBER = "919737403050";
 
 function openWhatsApp(){
   if(WHATSAPP_NUMBER){

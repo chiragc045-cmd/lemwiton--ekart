@@ -6,7 +6,18 @@ const pool=new Pool({
   ssl:process.env.DATABASE_URL?.includes("localhost")?false:{rejectUnauthorized:false}
 });
 app.use(express.json());
-app.use(express.static(__dirname));
+
+// Permanent browser-cache fix for website assets.
+// Browsers revalidate images/CSS/JS/HTML instead of keeping an old copy
+// indefinitely, so customers automatically receive updated files without
+// clearing their browser cache.
+app.use(express.static(__dirname,{
+  setHeaders:(res,filePath)=>{
+    if (/\.(?:png|jpe?g|webp|gif|svg|ico|css|js|html)$/i.test(filePath)) {
+      res.setHeader("Cache-Control","no-cache, must-revalidate");
+    }
+  }
+}));
 const sessions=new Map();
 const rp=(process.env.RAZORPAY_KEY_ID&&process.env.RAZORPAY_KEY_SECRET)
   ?new (require("razorpay"))({key_id:process.env.RAZORPAY_KEY_ID,key_secret:process.env.RAZORPAY_KEY_SECRET})

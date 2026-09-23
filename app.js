@@ -8,7 +8,7 @@ function openSearch(){
   setTimeout(()=>document.getElementById('search')?.focus(),350);
 }
 
-const WHATSAPP_NUMBER = "";
+const WHATSAPP_NUMBER = "919737403050";
 
 function openWhatsApp(){
   if(WHATSAPP_NUMBER){
@@ -138,7 +138,7 @@ const productImages={
   P002:["product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg"],
   P003:["product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png"],
   P004:["product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png"],
-  P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v2.png","product-ubtan-pack-v2.png","product-ubtan-pack-v2.png","product-ubtan-pack-v2.png"],
+  P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v3.png","product-ubtan-pack-v4.png","product-ubtan-pack-v5.png","product-ubtan-pack-v6.png"],
   P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg"],
   P007:["product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg"],
   P008:["product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png"]

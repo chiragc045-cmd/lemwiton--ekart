@@ -134,7 +134,7 @@ async function submitForgotPassword(){
    The first image is the existing product image.
    Add the other 4 filenames when you upload alternate product photos. */
 const productImages={
-  P001:["product-shampoo.jpeg","product-shampoo.jpeg","product-shampoo.jpeg","product-shampoo.jpeg","product-shampoo.jpeg"],
+  P001:["product-shampoo-slider-1.png","product-shampoo-slider-2.png","product-shampoo-slider-3.png","product-shampoo-slider-4.png","product-shampoo-slider-5.png"],
   P002:["product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg"],
   P003:["product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png"],
   P004:["product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png"],

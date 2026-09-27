@@ -139,8 +139,8 @@ const productImages={
   P003:["product-bhringraj-oil-v2.png","product-bhringraj-oil-slider-2.png","product-bhringraj-oil-slider-3.png","product-bhringraj-oil-slider-4.png","product-bhringraj-oil-slider-5.png"],
   P004:["product-amla-oil-v3.png","product-amla-oil-slider-2.png","product-amla-oil-slider-3.png","product-amla-oil-slider-4.png","product-amla-oil-slider-5.png"],
   P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v3.png","product-ubtan-pack-v4.png","product-ubtan-pack-v5.png","product-ubtan-pack-v6.png"],
-  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg"],
-  P007:["product-ubtan-soap-v2.png","product-ubtan-soap-v3.png","product-ubtan-soap-v4.png","product-ubtan-soap-v5.png","product-ubtan-soap-v6.png"],
+  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall-2.png","product-anti-hair-fall-3.png","product-anti-hair-fall-4.png","product-anti-hair-fall-5.png"],
+  P007:["product-ubtan-soap-slider-1.png","product-ubtan-soap-slider-2.png","product-ubtan-soap-slider-3.png","product-ubtan-soap-slider-4.png","product-ubtan-soap-slider-5.png"],
   P008:["product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png"]
 };
 async function load(){

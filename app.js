@@ -8,7 +8,7 @@ function openSearch(){
   setTimeout(()=>document.getElementById('search')?.focus(),350);
 }
 
-const WHATSAPP_NUMBER = "";
+const WHATSAPP_NUMBER = "919737403050";
 
 function openWhatsApp(){
   if(WHATSAPP_NUMBER){
@@ -134,12 +134,12 @@ async function submitForgotPassword(){
    The first image is the existing product image.
    Add the other 4 filenames when you upload alternate product photos. */
 const productImages={
-  P001:["product-shampoo.jpeg","product-shampoo.jpeg","product-shampoo.jpeg","product-shampoo.jpeg","product-shampoo.jpeg"],
-  P002:["product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg","product-hair-serum.jpeg"],
-  P003:["product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png"],
-  P004:["product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png"],
-  P005:["product-ubtan-pack.png","product-ubtan-pack.png","product-ubtan-pack.png","product-ubtan-pack.png","product-ubtan-pack.png"],
-  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall-2.png","product-anti-hair-fall-3.png","product-anti-hair-fall-4.png","product-anti-hair-fall-5.png"],
+  P001:["product-shampoo-slider-1.png","product-shampoo-slider-2.png","product-shampoo-slider-3.png","product-shampoo-slider-4.png","product-shampoo-slider-5.png"],
+  P002:["product-hair-serum.jpeg","product-hair-serum-slider-2.png","product-hair-serum-slider-3.png","product-hair-serum-slider-4.png","product-hair-serum-slider-5.png"],
+  P003:["product-bhringraj-oil-v2.png","product-bhringraj-oil-slider-2.png","product-bhringraj-oil-slider-3.png","product-bhringraj-oil-slider-4.png","product-bhringraj-oil-slider-5.png"],
+  P004:["product-amla-oil-v3.png","product-amla-oil-slider-2.png","product-amla-oil-slider-3.png","product-amla-oil-slider-4.png","product-amla-oil-slider-5.png"],
+  P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v3.png","product-ubtan-pack-v4.png","product-ubtan-pack-v5.png","product-ubtan-pack-v6.png"],
+  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg"],
   P007:["product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg"],
   P008:["product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png"]
 };

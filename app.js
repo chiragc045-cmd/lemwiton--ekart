@@ -141,7 +141,7 @@ const productImages={
   P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v3.png","product-ubtan-pack-v4.png","product-ubtan-pack-v5.png","product-ubtan-pack-v6.png"],
   P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall-2.png","product-anti-hair-fall-3.png","product-anti-hair-fall-4.png","product-anti-hair-fall-5.png"],
   P007:["product-ubtan-soap-slider-1.png","product-ubtan-soap-slider-2.png","product-ubtan-soap-slider-3.png","product-ubtan-soap-slider-4.png","product-ubtan-soap-slider-5.png"],
-  P008:["product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png"]
+  P008:["product-kesuda-soap.png","product-kesuda-soap-slider-2.png","product-kesuda-soap-slider-3.png","product-kesuda-soap-slider-4.png","product-kesuda-soap-slider-5.png"]
 };
 async function load(){
   ps=await(await fetch("/api/products")).json();

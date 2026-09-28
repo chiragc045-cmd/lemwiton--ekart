@@ -199,6 +199,9 @@ function openProductImagePopup(img){
   const productId=img.getAttribute('data-product-id')||'';
   const imageIndex=Number(img.getAttribute('data-image-index')||0);
   const product=ps.find(x=>x.id===productId);
+  const imgs=(productImages[productId]||[]).slice(0,5);
+  if(!imgs.length) imgs.push(img.currentSrc||img.src);
+
   const existing=document.getElementById('productImagePopup');
   if(existing) existing.remove();
 
@@ -212,7 +215,12 @@ function openProductImagePopup(img){
     <div class="product-image-popup-panel">
       <button type="button" class="product-image-popup-close" aria-label="Close image">✕</button>
       <div class="product-image-popup-media">
-        <img src="${img.currentSrc||img.src}" alt="${img.alt||''}">
+        <button type="button" class="product-image-popup-arrow product-image-popup-prev" aria-label="Previous image">‹</button>
+        <img class="product-image-popup-main-image" src="${imgs[imageIndex]||imgs[0]}" alt="${product?.name||img.alt||''}">
+        <button type="button" class="product-image-popup-arrow product-image-popup-next" aria-label="Next image">›</button>
+      </div>
+      <div class="product-image-popup-dots" aria-label="Product images">
+        ${imgs.map((_,i)=>`<button type="button" class="product-image-popup-dot${i===imageIndex?' active':''}" aria-label="Image ${i+1}" aria-current="${i===imageIndex?'true':'false'}"></button>`).join('')}
       </div>
       <div class="product-image-popup-details">
         <h2>${product?.name||img.alt||''}</h2>
@@ -221,8 +229,49 @@ function openProductImagePopup(img){
         ${product?`<button type="button" class="product-image-popup-cart">Add to Cart</button>`:''}
       </div>
     </div>`;
+
   document.body.appendChild(popup);
   document.body.classList.add('product-image-popup-open');
+
+  const media=popup.querySelector('.product-image-popup-media');
+  const mainImage=popup.querySelector('.product-image-popup-main-image');
+  const dots=popup.querySelectorAll('.product-image-popup-dot');
+  const prev=popup.querySelector('.product-image-popup-prev');
+  const next=popup.querySelector('.product-image-popup-next');
+  let current=Math.min(Math.max(imageIndex,0),imgs.length-1);
+  let startX=0, tracking=false;
+
+  function showPopupImage(index){
+    current=(index+imgs.length)%imgs.length;
+    mainImage.src=imgs[current];
+    mainImage.alt=product?.name||img.alt||'';
+    dots.forEach((dot,i)=>{
+      dot.classList.toggle('active',i===current);
+      dot.setAttribute('aria-current',i===current?'true':'false');
+    });
+  }
+
+  prev.addEventListener('click',e=>{
+    e.preventDefault(); e.stopPropagation(); showPopupImage(current-1);
+  });
+  next.addEventListener('click',e=>{
+    e.preventDefault(); e.stopPropagation(); showPopupImage(current+1);
+  });
+  dots.forEach((dot,i)=>dot.addEventListener('click',e=>{
+    e.preventDefault(); e.stopPropagation(); showPopupImage(i);
+  }));
+
+  media.addEventListener('touchstart',e=>{
+    if(e.touches.length!==1)return;
+    startX=e.touches[0].clientX;
+    tracking=true;
+  },{passive:true});
+  media.addEventListener('touchend',e=>{
+    if(!tracking)return;
+    tracking=false;
+    const dx=e.changedTouches[0].clientX-startX;
+    if(Math.abs(dx)>40) showPopupImage(current+(dx<0?1:-1));
+  },{passive:true});
 
   const close=()=>closeProductImagePopup(false);
   popup.querySelector('.product-image-popup-close').addEventListener('click',close);
@@ -230,12 +279,14 @@ function openProductImagePopup(img){
   const cart=popup.querySelector('.product-image-popup-cart');
   if(cart) cart.addEventListener('click',()=>{ if(product) add(product.id); });
 
+  showPopupImage(current);
+
   if(!(history.state && history.state.lemwitonProductImagePopup)){
-    history.pushState({lemwitonProductImagePopup:true,imageIndex},'',location.href);
+    history.pushState({lemwitonProductImagePopup:true,imageIndex:current},'',location.href);
   }
 }
 
-window.addEventListener('popstate',function(e){
+window.addEventListener('popstate',function(){
   if(document.getElementById('productImagePopup')){
     closeProductImagePopup(true);
   }
@@ -251,8 +302,15 @@ function initProductImagePopupStyles(){
     .product-image-popup-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.72);}
     .product-image-popup-panel{position:relative;z-index:1;width:min(920px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:16px;box-sizing:border-box;}
     .product-image-popup-close{position:absolute;right:10px;top:10px;z-index:3;width:40px;height:40px;border:0;border-radius:50%;background:#fff;font-size:22px;line-height:40px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.18);}
-    .product-image-popup-media{text-align:center;background:#f6f5ef;border-radius:10px;overflow:hidden;}
-    .product-image-popup-media img{display:block;width:100%;max-height:70vh;object-fit:contain;margin:auto;}
+    .product-image-popup-media{position:relative;text-align:center;background:#f6f5ef;border-radius:10px;overflow:hidden;}
+    .product-image-popup-media img{user-select:none;-webkit-user-drag:none;touch-action:pan-y;}
+    .product-image-popup-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:42px;height:42px;border:0;border-radius:50%;background:rgba(255,255,255,.94);color:#174f40;font-size:32px;line-height:38px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.18);}
+    .product-image-popup-prev{left:10px;}
+    .product-image-popup-next{right:10px;}
+    .product-image-popup-dots{display:flex;justify-content:center;align-items:center;gap:8px;padding:10px 0 2px;}
+    .product-image-popup-dot{width:10px;height:10px;padding:0;border:0;border-radius:50%;background:#cfcfcf;cursor:pointer;}
+    .product-image-popup-dot.active{background:#004d3c;transform:scale(1.15);}
+    .product-image-popup-media img{display:block;width:100%;max-height:70vh;object-fit:contain;margin:auto;user-select:none;-webkit-user-drag:none;touch-action:pan-y;}
     .product-image-popup-details{padding:14px 4px 2px;text-align:left;}
     .product-image-popup-details h2{margin:0 0 6px;font-size:22px;}
     .product-image-popup-details p{margin:0 0 8px;color:#806b4f;}

@@ -290,7 +290,25 @@ function draw(){
 
 function openCart(){drawer.classList.add("show");shade.classList.add("show")}
 function closeCart(){drawer.classList.remove("show");shade.classList.remove("show")}
-function closeModal(){modal.classList.remove("show")}
+let imageZoomHistoryOpen=false;
+
+function closeModal(fromPopState=false){
+  const wasOpen=modal.classList.contains('show');
+  modal.classList.remove('show');
+  if(wasOpen && imageZoomHistoryOpen && !fromPopState){
+    imageZoomHistoryOpen=false;
+    history.back();
+  }else{
+    imageZoomHistoryOpen=false;
+  }
+}
+
+window.addEventListener('popstate',()=>{
+  if(imageZoomHistoryOpen || modal.classList.contains('show')){
+    imageZoomHistoryOpen=false;
+    modal.classList.remove('show');
+  }
+});
 
 function openImageZoom(src,name,meta,price,article){
   if(!src)return;
@@ -323,6 +341,10 @@ function openImageZoom(src,name,meta,price,article){
       ${id?`<button class="image-zoom-cart" onclick="add('${id}');closeModal()">Add to Cart</button>`:''}
     </div>
   </div>`;
+  if(!imageZoomHistoryOpen){
+    history.pushState({...(history.state||{}),lemwitonImageZoom:true},'',location.href);
+    imageZoomHistoryOpen=true;
+  }
   modal.classList.add('show');
 }
 

@@ -136,12 +136,12 @@ async function submitForgotPassword(){
 const productImages={
   P001:["product-shampoo-slider-1.png","product-shampoo-slider-2.png","product-shampoo-slider-3.png","product-shampoo-slider-4.png","product-shampoo-slider-5.png"],
   P002:["product-hair-serum.jpeg","product-hair-serum-slider-2.png","product-hair-serum-slider-3.png","product-hair-serum-slider-4.png","product-hair-serum-slider-5.png"],
-  P003:["product-bhringraj-oil-v2.png","product-bhringraj-oil-slider-2.png","product-bhringraj-oil-slider-3.png","product-bhringraj-oil-slider-4.png","product-bhringraj-oil-slider-5.png"],
-  P004:["product-amla-oil-v3.png","product-amla-oil-slider-2.png","product-amla-oil-slider-3.png","product-amla-oil-slider-4.png","product-amla-oil-slider-5.png"],
+  P003:["product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png"],
+  P004:["product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png"],
   P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v3.png","product-ubtan-pack-v4.png","product-ubtan-pack-v5.png","product-ubtan-pack-v6.png"],
-  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall-2.png","product-anti-hair-fall-3.png","product-anti-hair-fall-4.png","product-anti-hair-fall-5.png"],
-  P007:["product-ubtan-soap-slider-1.png","product-ubtan-soap-slider-2.png","product-ubtan-soap-slider-3.png","product-ubtan-soap-slider-4.png","product-ubtan-soap-slider-5.png"],
-  P008:["product-kesuda-soap.png","product-kesuda-soap-slider-2.png","product-kesuda-soap-slider-3.png","product-kesuda-soap-slider-4.png","product-kesuda-soap-slider-5.png"]
+  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg"],
+  P007:["product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg"],
+  P008:["product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png","product-kesuda-soap.png"]
 };
 async function load(){
   ps=await(await fetch("/api/products")).json();
@@ -207,12 +207,35 @@ function initProductGalleries(){
       if(e.touches.length!==1)return;
       startX=e.touches[0].clientX; dragging=true;
     },{passive:true});
+    let lastSwipeAt=0;
     gallery.addEventListener('touchend',e=>{
       if(!dragging)return;
       dragging=false;
       const dx=e.changedTouches[0].clientX-startX;
-      if(Math.abs(dx)>40) show(current+(dx<0?1:-1));
+      if(Math.abs(dx)>40){
+        lastSwipeAt=Date.now();
+        show(current+(dx<0?1:-1));
+      }
     },{passive:true});
+
+    /* Tap any product image to open a large zoom view with product details.
+       Swipe/arrow/dot interactions remain unchanged. */
+    slides.forEach((slide,i)=>{
+      const img=slide.querySelector('img');
+      if(!img)return;
+      img.style.cursor='zoom-in';
+      img.setAttribute('title','Tap to zoom and view details');
+      img.addEventListener('click',e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        if(Date.now()-lastSwipeAt<450)return;
+        const article=gallery.closest('article');
+        const name=article?.querySelector('h3')?.textContent?.trim()||img.alt||'Lemwiton Product';
+        const meta=article?.querySelector('small')?.textContent?.trim()||'';
+        const price=article?.querySelector('strong')?.textContent?.trim()||'';
+        openImageZoom(img.currentSrc||img.src,name,meta,price,article);
+      });
+    });
 
     show(0);
   });
@@ -268,6 +291,41 @@ function draw(){
 function openCart(){drawer.classList.add("show");shade.classList.add("show")}
 function closeCart(){drawer.classList.remove("show");shade.classList.remove("show")}
 function closeModal(){modal.classList.remove("show")}
+
+function openImageZoom(src,name,meta,price,article){
+  if(!src)return;
+  if(!document.getElementById('lemwitonImageZoomStyles')){
+    const st=document.createElement('style');
+    st.id='lemwitonImageZoomStyles';
+    st.textContent=`
+      #modal .image-zoom-box{width:min(94vw,760px);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:14px;box-sizing:border-box;box-shadow:0 18px 60px rgba(0,0,0,.25)}
+      #modal .image-zoom-box img{display:block;width:100%;height:auto;max-height:68vh;object-fit:contain;border-radius:12px;background:#f7f7f2}
+      #modal .image-zoom-info{padding:12px 4px 2px;text-align:left}
+      #modal .image-zoom-info h2{margin:0 0 7px;font-size:20px;color:#173b2a}
+      #modal .image-zoom-info p{margin:4px 0;color:#66736c;font-size:14px}
+      #modal .image-zoom-price{display:block;margin-top:8px;font-size:20px;color:#173b2a}
+      #modal .image-zoom-cart{margin-top:12px;width:100%;border:0;border-radius:8px;padding:12px;background:#064c38;color:#fff;font-size:15px;cursor:pointer}
+      @media(max-width:600px){#modal .modalbox{width:100%;padding:0;background:transparent}#modal .image-zoom-box{width:94vw;padding:10px;border-radius:16px}#modal .image-zoom-box img{max-height:62vh}#modal .image-zoom-info h2{font-size:18px}}
+    `;
+    document.head.appendChild(st);
+  }
+  const product=ps.find(p=>{
+    const a=article;
+    return a && a.querySelector('h3')?.textContent?.trim()===p.name;
+  });
+  const id=product?.id;
+  view.innerHTML=`<div class="image-zoom-box">
+    <img src="${src}" alt="${name}">
+    <div class="image-zoom-info">
+      <h2>${name}</h2>
+      <p>${meta}</p>
+      <strong class="image-zoom-price">${price}</strong>
+      ${id?`<button class="image-zoom-cart" onclick="add('${id}');closeModal()">Add to Cart</button>`:''}
+    </div>
+  </div>`;
+  modal.classList.add('show');
+}
+
 
 function checkout(){
   if(!cart.length)return alert("Add a product first");

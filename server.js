@@ -6,18 +6,7 @@ const pool=new Pool({
   ssl:process.env.DATABASE_URL?.includes("localhost")?false:{rejectUnauthorized:false}
 });
 app.use(express.json());
-
-// Permanent browser-cache fix for website assets.
-// Browsers revalidate images/CSS/JS/HTML instead of keeping an old copy
-// indefinitely, so customers automatically receive updated files without
-// clearing their browser cache.
-app.use(express.static(__dirname,{
-  setHeaders:(res,filePath)=>{
-    if (/\.(?:png|jpe?g|webp|gif|svg|ico|css|js|html)$/i.test(filePath)) {
-      res.setHeader("Cache-Control","no-cache, must-revalidate");
-    }
-  }
-}));
+app.use(express.static(__dirname));
 const sessions=new Map();
 const rp=(process.env.RAZORPAY_KEY_ID&&process.env.RAZORPAY_KEY_SECRET)
   ?new (require("razorpay"))({key_id:process.env.RAZORPAY_KEY_ID,key_secret:process.env.RAZORPAY_KEY_SECRET})
@@ -276,29 +265,57 @@ app.post("/api/orders",async(q,s)=>{
     let pay=null;
     if(paymentMethod==="ONLINE"){
       if(!rp)throw Error("Online payment is not configured");
-      pay=await rp.orders.create({amount:total,currency:"INR",receipt:id,payment_capture:1});
+      if(!Number.isInteger(total)||total<100)throw Error("Payment amount must be at least 100 paise");
+      try{
+        pay=await rp.orders.create({
+          amount:total,
+          currency:"INR",
+          receipt:id,
+          payment_capture:1
+        });
+      }catch(err){
+        const authFailed=err?.statusCode===401||err?.error?.code==="BAD_REQUEST_ERROR"&&/auth|key|secret|credential/i.test(err?.error?.description||"");
+        err.httpStatus=authFailed?401:500;
+        throw err;
+      }
       await c.query("UPDATE orders SET razorpay_order_id=$1 WHERE id=$2",[pay.id,id])
     }
     await c.query("COMMIT");
     s.status(201).json({orderId:id,total:total/100,payment:pay?{keyId:process.env.RAZORPAY_KEY_ID,orderId:pay.id,amount:total,currency:"INR"}:null})
   }catch(e){
-    await c.query("ROLLBACK");s.status(400).json({error:e.message})
+    await c.query("ROLLBACK");
+    const status=Number.isInteger(e?.httpStatus)?e.httpStatus:(e?.statusCode===401?401:400);
+    s.status(status).json({error:e.message||"Unable to create order"});
   }finally{c.release()}
 });
+
 app.post("/api/payments/verify",async(q,s)=>{
-  let {razorpay_order_id,razorpay_payment_id,razorpay_signature}=q.body;
-  if(!process.env.RAZORPAY_KEY_SECRET)return s.status(503).json({error:"Payment gateway not configured"});
-  let expected=crypto.createHmac("sha256",process.env.RAZORPAY_KEY_SECRET)
-    .update(razorpay_order_id+"|"+razorpay_payment_id).digest("hex");
-  if(expected!==razorpay_signature)return s.status(400).json({error:"Invalid signature"});
+  const {razorpay_order_id,razorpay_payment_id,razorpay_signature}=q.body||{};
+  if(!razorpay_order_id||!razorpay_payment_id||!razorpay_signature)
+    return s.status(400).json({error:"Missing payment verification fields"});
+  if(!process.env.RAZORPAY_KEY_SECRET)
+    return s.status(503).json({error:"Payment gateway not configured"});
+
+  const generated=crypto.createHmac("sha256",process.env.RAZORPAY_KEY_SECRET)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest("hex");
+
+  const expectedBuffer=Buffer.from(generated,"utf8");
+  const receivedBuffer=Buffer.from(String(razorpay_signature),"utf8");
+  if(expectedBuffer.length!==receivedBuffer.length ||
+     !crypto.timingSafeEqual(expectedBuffer,receivedBuffer))
+    return s.status(400).json({error:"Invalid payment signature"});
+
   try{
-    let {rows}=await pool.query(
-      "UPDATE orders SET payment_status='paid',order_status='confirmed',razorpay_payment_id=$1,updated_at=NOW() WHERE razorpay_order_id=$2 RETURNING id",
+    const {rows}=await pool.query(
+      "UPDATE orders SET payment_status='paid',order_status='confirmed',razorpay_payment_id=$1,updated_at=NOW() WHERE razorpay_order_id=$2 RETURNING id,total_paise",
       [razorpay_payment_id,razorpay_order_id]
     );
     if(!rows[0])return s.status(404).json({error:"Order not found"});
-    s.json({ok:true,orderId:rows[0].id})
-  }catch(e){s.status(500).json({error:"Database error"})}
+    s.json({ok:true,orderId:rows[0].id,amount:rows[0].total_paise});
+  }catch(e){
+    s.status(500).json({error:"Database error"});
+  }
 });
 const port=process.env.PORT||3000;
 initDatabase()

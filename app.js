@@ -162,7 +162,7 @@ function render(){
           <div class="product-gallery-track">
             ${imgs.slice(0,5).map((src,i)=>`
               <div class="product-gallery-slide">
-                <img src="${src}" alt="${p.name}" loading="lazy">
+                <img src="${src}" alt="${p.name}" loading="lazy" data-product-image data-product-id="${p.id}" data-image-index="${i}">
               </div>`).join("")}
           </div>
           <button class="product-gallery-arrow product-gallery-prev" type="button" aria-label="Previous image">‹</button>
@@ -184,6 +184,93 @@ function render(){
 
   initProductGalleries();
 }
+function closeProductImagePopup(fromHistory=false){
+  const popup=document.getElementById('productImagePopup');
+  if(!popup)return;
+  popup.remove();
+  document.body.classList.remove('product-image-popup-open');
+  if(!fromHistory && history.state && history.state.lemwitonProductImagePopup){
+    history.back();
+  }
+}
+
+function openProductImagePopup(img){
+  if(!img)return;
+  const productId=img.getAttribute('data-product-id')||'';
+  const imageIndex=Number(img.getAttribute('data-image-index')||0);
+  const product=ps.find(x=>x.id===productId);
+  const existing=document.getElementById('productImagePopup');
+  if(existing) existing.remove();
+
+  const popup=document.createElement('div');
+  popup.id='productImagePopup';
+  popup.className='product-image-popup';
+  popup.setAttribute('role','dialog');
+  popup.setAttribute('aria-modal','true');
+  popup.innerHTML=`
+    <div class="product-image-popup-backdrop"></div>
+    <div class="product-image-popup-panel">
+      <button type="button" class="product-image-popup-close" aria-label="Close image">✕</button>
+      <div class="product-image-popup-media">
+        <img src="${img.currentSrc||img.src}" alt="${img.alt||''}">
+      </div>
+      <div class="product-image-popup-details">
+        <h2>${product?.name||img.alt||''}</h2>
+        ${product?.size||product?.category?`<p>${product?.size||''}${product?.size&&product?.category?' • ':''}${product?.category||''}</p>`:''}
+        ${product?.price!=null?`<strong>₹${product.price}</strong>`:''}
+        ${product?`<button type="button" class="product-image-popup-cart">Add to Cart</button>`:''}
+      </div>
+    </div>`;
+  document.body.appendChild(popup);
+  document.body.classList.add('product-image-popup-open');
+
+  const close=()=>closeProductImagePopup(false);
+  popup.querySelector('.product-image-popup-close').addEventListener('click',close);
+  popup.querySelector('.product-image-popup-backdrop').addEventListener('click',close);
+  const cart=popup.querySelector('.product-image-popup-cart');
+  if(cart) cart.addEventListener('click',()=>{ if(product) add(product.id); });
+
+  if(!(history.state && history.state.lemwitonProductImagePopup)){
+    history.pushState({lemwitonProductImagePopup:true,imageIndex},'',location.href);
+  }
+}
+
+window.addEventListener('popstate',function(e){
+  if(document.getElementById('productImagePopup')){
+    closeProductImagePopup(true);
+  }
+});
+
+function initProductImagePopupStyles(){
+  if(document.getElementById('productImagePopupStyles'))return;
+  const style=document.createElement('style');
+  style.id='productImagePopupStyles';
+  style.textContent=`
+    body.product-image-popup-open{overflow:hidden;}
+    .product-image-popup{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;}
+    .product-image-popup-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.72);}
+    .product-image-popup-panel{position:relative;z-index:1;width:min(920px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:16px;box-sizing:border-box;}
+    .product-image-popup-close{position:absolute;right:10px;top:10px;z-index:3;width:40px;height:40px;border:0;border-radius:50%;background:#fff;font-size:22px;line-height:40px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.18);}
+    .product-image-popup-media{text-align:center;background:#f6f5ef;border-radius:10px;overflow:hidden;}
+    .product-image-popup-media img{display:block;width:100%;max-height:70vh;object-fit:contain;margin:auto;}
+    .product-image-popup-details{padding:14px 4px 2px;text-align:left;}
+    .product-image-popup-details h2{margin:0 0 6px;font-size:22px;}
+    .product-image-popup-details p{margin:0 0 8px;color:#806b4f;}
+    .product-image-popup-details strong{display:block;font-size:22px;margin-bottom:10px;}
+    .product-image-popup-cart{width:100%;border:0;background:#004d3c;color:#fff;padding:13px 16px;border-radius:4px;font-size:16px;cursor:pointer;}
+    @media(max-width:600px){
+      .product-image-popup{padding:8px;align-items:center;}
+      .product-image-popup-panel{width:100%;max-height:calc(100vh - 16px);border-radius:12px;padding:10px;}
+      .product-image-popup-media img{max-height:62vh;}
+      .product-image-popup-details h2{font-size:19px;}
+      .product-image-popup-close{width:38px;height:38px;line-height:38px;}
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+initProductImagePopupStyles();
+
 function initProductGalleries(){
   document.querySelectorAll('[data-product-gallery]').forEach(gallery=>{
     const track=gallery.querySelector('.product-gallery-track');
@@ -213,6 +300,14 @@ function initProductGalleries(){
       const dx=e.changedTouches[0].clientX-startX;
       if(Math.abs(dx)>40) show(current+(dx<0?1:-1));
     },{passive:true});
+
+    gallery.querySelectorAll('[data-product-image]').forEach(img=>{
+      img.addEventListener('click',e=>{
+        e.preventDefault();
+        e.stopPropagation();
+        openProductImagePopup(img);
+      });
+    });
 
     show(0);
   });

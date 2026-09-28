@@ -136,11 +136,11 @@ async function submitForgotPassword(){
 const productImages={
   P001:["product-shampoo-slider-1.png","product-shampoo-slider-2.png","product-shampoo-slider-3.png","product-shampoo-slider-4.png","product-shampoo-slider-5.png"],
   P002:["product-hair-serum.jpeg","product-hair-serum-slider-2.png","product-hair-serum-slider-3.png","product-hair-serum-slider-4.png","product-hair-serum-slider-5.png"],
-  P003:["product-bhringraj-oil-v2.png","product-bhringraj-oil-slider-2.png","product-bhringraj-oil-slider-3.png","product-bhringraj-oil-slider-4.png","product-bhringraj-oil-slider-5.png"],
-  P004:["product-amla-oil-v3.png","product-amla-oil-slider-2.png","product-amla-oil-slider-3.png","product-amla-oil-slider-4.png","product-amla-oil-slider-5.png"],
+  P003:["product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png","product-bhringraj-oil.png"],
+  P004:["product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png","product-amla-oil.png"],
   P005:["product-ubtan-pack-v2.png","product-ubtan-pack-v3.png","product-ubtan-pack-v4.png","product-ubtan-pack-v5.png","product-ubtan-pack-v6.png"],
-  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall-2.png","product-anti-hair-fall-3.png","product-anti-hair-fall-4.png","product-anti-hair-fall-5.png"],
-  P007:["product-ubtan-soap-slider-1.png","product-ubtan-soap-slider-2.png","product-ubtan-soap-slider-3.png","product-ubtan-soap-slider-4.png","product-ubtan-soap-slider-5.png"],
+  P006:["product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg","product-anti-hair-fall.jpeg"],
+  P007:["product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg","product-ubtan-soap.jpeg"],
   P008:["product-kesuda-soap.png","product-kesuda-soap-slider-2.png","product-kesuda-soap-slider-3.png","product-kesuda-soap-slider-4.png","product-kesuda-soap-slider-5.png"]
 };
 async function load(){
@@ -447,25 +447,131 @@ function checkout(){
 
 async function placeOrder(e){
   e.preventDefault();
-  let customer=Object.fromEntries(new FormData(e.target));
+  const form=e.target;
+  const customer=Object.fromEntries(new FormData(form));
+  const submitButton=form.querySelector('button[type="submit"],button:not([type])');
+  if(submitButton){submitButton.disabled=true;submitButton.textContent=customer.paymentMethod==="ONLINE"?"Creating Payment...":"Placing Order...";}
 
-  let r=await fetch("/api/orders",{
-    method:"POST",
-    headers:{"Content-Type":"application/json",...(customerSession?{"Authorization":"Bearer "+customerSession}:{})},
-    body:JSON.stringify({customer,items:cart,paymentMethod:customer.paymentMethod})
-  });
+  try{
+    const r=await fetch("/api/orders",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        ...(customerSession?{"Authorization":"Bearer "+customerSession}:{})
+      },
+      body:JSON.stringify({customer,items:cart,paymentMethod:customer.paymentMethod})
+    });
 
-  let d=await r.json();
-  if(!r.ok)return alert(d.error);
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||"Unable to create order");
+
+    if(customer.paymentMethod==="ONLINE"){
+      if(!d.payment?.keyId||!d.payment?.orderId){
+        throw new Error("Online payment is not configured. Please try again later.");
+      }
+      openRazorpayCheckout(d,customer);
+      return;
+    }
+
+    showOrderSuccess(d);
+  }catch(err){
+    alert(err.message||"Something went wrong");
+    if(submitButton){submitButton.disabled=false;submitButton.textContent="Place Order";}
+  }
+}
+
+function showOrderSuccess(d){
   view.innerHTML=`<div class="success">✓
-    <h2>Order Created</h2>
+    <h2>Order Confirmed</h2>
     <p>Order ID: <b>${d.orderId}</b></p>
     <p>Total: ₹${d.total}</p>
-    ${d.payment?`<p>Razorpay Order: ${d.payment.orderId}<br><small>Checkout UI activates after live Razorpay keys are configured.</small></p>`:""}
     <button onclick="closeModal()">Continue Shopping</button>
   </div>`;
+  cart=[];
+  draw();
+}
 
-  cart=[]; draw();
+function openRazorpayCheckout(d,customer){
+  if(typeof Razorpay!=="function"){
+    alert("Razorpay Checkout could not be loaded. Please refresh and try again.");
+    return;
+  }
+
+  const options={
+    key:d.payment.keyId,
+    amount:d.payment.amount,
+    currency:d.payment.currency||"INR",
+    name:"Lemwiton Ayurveda",
+    description:"Lemwiton Ayurvedic Care",
+    order_id:d.payment.orderId,
+    prefill:{
+      name:customer.name||"",
+      email:customer.email||"",
+      contact:customer.phone||""
+    },
+    theme:{color:"#315a45"},
+    modal:{
+      ondismiss:function(){
+        if(document.getElementById("modal")?.classList.contains("show")){
+          view.innerHTML=`<div class="success">
+            <h2>Payment Cancelled</h2>
+            <p>Your payment was cancelled. Your cart is still saved, so you can try again.</p>
+            <button onclick="closeModal()">Back to Shopping</button>
+          </div>`;
+        }
+      }
+    },
+    handler:async function(response){
+      await verifyRazorpayPayment(response,d);
+    }
+  };
+
+  const rzp=new Razorpay(options);
+
+  rzp.on("payment.failed",function(response){
+    const description=response?.error?.description||"Payment failed. No payment was confirmed.";
+    view.innerHTML=`<div class="success">
+      <h2>Payment Failed</h2>
+      <p>${escapeHtml(description)}</p>
+      <p>Your cart is still saved. Please try again.</p>
+      <button onclick="closeModal()">Back to Shopping</button>
+    </div>`;
+  });
+
+  rzp.open();
+}
+
+async function verifyRazorpayPayment(response,d){
+  view.innerHTML=`<div class="success"><h2>Verifying Payment...</h2><p>Please wait while we confirm your payment.</p></div>`;
+
+  try{
+    const r=await fetch("/api/payments/verify",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        razorpay_order_id:response.razorpay_order_id,
+        razorpay_payment_id:response.razorpay_payment_id,
+        razorpay_signature:response.razorpay_signature
+      })
+    });
+    const result=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(result.error||"Payment verification failed");
+
+    showOrderSuccess(d);
+  }catch(err){
+    view.innerHTML=`<div class="success">
+      <h2>Payment Verification Failed</h2>
+      <p>${escapeHtml(err.message||"We could not verify the payment.")}</p>
+      <p>Your cart is still saved. Please contact support if your bank was charged.</p>
+      <button onclick="closeModal()">Close</button>
+    </div>`;
+  }
+}
+
+function escapeHtml(value){
+  return String(value??"").replace(/[&<>"']/g,function(ch){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];
+  });
 }
 
 load();

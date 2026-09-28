@@ -37,3 +37,12 @@ Those are external accounts, so this package does not pretend that `lemwiton.in`
 - Use a persistent secure session store instead of the prototype in-memory sessions.
 - Add rate limiting, security headers, CSRF protection where applicable, input validation and database backups before launch.
 - Use HTTPS only in production.
+
+## Razorpay Standard Web Checkout
+- `POST /api/orders` creates the site order and, for `paymentMethod: "ONLINE"`, creates the Razorpay Order server-side. This is the project's equivalent of a dedicated `/api/create-order` endpoint because the existing checkout also creates the local order in the same transaction.
+- `POST /api/payments/verify` validates `razorpay_order_id + "|" + razorpay_payment_id` with HMAC-SHA256 using `RAZORPAY_KEY_SECRET` before marking the order paid.
+- Frontend loads Razorpay Standard Checkout from `https://checkout.razorpay.com/v1/checkout.js` and sends the three Razorpay response fields to the verification endpoint.
+- Set these Render/server environment variables (do not put the secret in frontend code):
+  - `RAZORPAY_KEY_ID`
+  - `RAZORPAY_KEY_SECRET`
+- Use Razorpay Test Mode keys first. Never paste the Key Secret into `index.html`, `app.js`, GitHub, or any public file.

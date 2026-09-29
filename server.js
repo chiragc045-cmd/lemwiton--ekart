@@ -229,7 +229,7 @@ app.patch("/api/orders/:id",auth,async(q,s)=>{
   }catch(e){s.status(500).json({error:"Database error"})}
 });
 
-app.post("/api/orders",async(q,s)=>{
+app.post(["/api/orders","/api/create-order"],async(q,s)=>{
   let {customer,items,paymentMethod="COD"}=q.body;
   if(!customer?.name||!customer?.phone||!customer?.address||!customer?.city||!customer?.state||!customer?.pin)
     return s.status(400).json({error:"Complete delivery details are required"});
@@ -281,7 +281,14 @@ app.post("/api/orders",async(q,s)=>{
       await c.query("UPDATE orders SET razorpay_order_id=$1 WHERE id=$2",[pay.id,id])
     }
     await c.query("COMMIT");
-    s.status(201).json({orderId:id,total:total/100,payment:pay?{keyId:process.env.RAZORPAY_KEY_ID,orderId:pay.id,amount:total,currency:"INR"}:null})
+    s.status(201).json({
+      orderId:id,
+      total:total/100,
+      order_id:pay?.id||null,
+      amount:pay?.amount||total,
+      currency:pay?.currency||"INR",
+      payment:pay?{keyId:process.env.RAZORPAY_KEY_ID,orderId:pay.id,amount:pay.amount,currency:pay.currency||"INR"}:null
+    })
   }catch(e){
     await c.query("ROLLBACK");
     const status=Number.isInteger(e?.httpStatus)?e.httpStatus:(e?.statusCode===401?401:400);
@@ -289,7 +296,7 @@ app.post("/api/orders",async(q,s)=>{
   }finally{c.release()}
 });
 
-app.post("/api/payments/verify",async(q,s)=>{
+app.post(["/api/payments/verify","/api/verify-payment"],async(q,s)=>{
   const {razorpay_order_id,razorpay_payment_id,razorpay_signature}=q.body||{};
   if(!razorpay_order_id||!razorpay_payment_id||!razorpay_signature)
     return s.status(400).json({error:"Missing payment verification fields"});

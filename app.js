@@ -453,7 +453,7 @@ async function placeOrder(e){
   if(submitButton){submitButton.disabled=true;submitButton.textContent=customer.paymentMethod==="ONLINE"?"Creating Payment...":"Placing Order...";}
 
   try{
-    const r=await fetch("/api/orders",{
+    const r=await fetch("/api/create-order",{
       method:"POST",
       headers:{
         "Content-Type":"application/json",
@@ -545,7 +545,7 @@ async function verifyRazorpayPayment(response,d){
   view.innerHTML=`<div class="success"><h2>Verifying Payment...</h2><p>Please wait while we confirm your payment.</p></div>`;
 
   try{
-    const r=await fetch("/api/payments/verify",{
+    const r=await fetch("/api/verify-payment",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({

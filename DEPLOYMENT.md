@@ -39,8 +39,8 @@ Those are external accounts, so this package does not pretend that `lemwiton.in`
 - Use HTTPS only in production.
 
 ## Razorpay Standard Web Checkout
-- `POST /api/orders` creates the site order and, for `paymentMethod: "ONLINE"`, creates the Razorpay Order server-side. This is the project's equivalent of a dedicated `/api/create-order` endpoint because the existing checkout also creates the local order in the same transaction.
-- `POST /api/payments/verify` validates `razorpay_order_id + "|" + razorpay_payment_id` with HMAC-SHA256 using `RAZORPAY_KEY_SECRET` before marking the order paid.
+- `POST /api/create-order` creates the site order and, for `paymentMethod: "ONLINE"`, creates the Razorpay Order server-side. The existing `POST /api/orders` route remains as a backward-compatible alias.
+- `POST /api/verify-payment` (legacy alias: `/api/payments/verify`) validates `razorpay_order_id + "|" + razorpay_payment_id` with HMAC-SHA256 using `RAZORPAY_KEY_SECRET` before marking the order paid.
 - Frontend loads Razorpay Standard Checkout from `https://checkout.razorpay.com/v1/checkout.js` and sends the three Razorpay response fields to the verification endpoint.
 - Set these Render/server environment variables (do not put the secret in frontend code):
   - `RAZORPAY_KEY_ID`

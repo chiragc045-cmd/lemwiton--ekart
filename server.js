@@ -8,9 +8,23 @@ const pool=new Pool({
 app.use(express.json());
 app.use(express.static(__dirname));
 const sessions=new Map();
-const rp=(process.env.RAZORPAY_KEY_ID&&process.env.RAZORPAY_KEY_SECRET)
-  ?new (require("razorpay"))({key_id:process.env.RAZORPAY_KEY_ID,key_secret:process.env.RAZORPAY_KEY_SECRET})
+// Normalize Render environment values without exposing the secret.
+const cleanEnvSecret=(value)=>{
+  const v=String(value||"").trim();
+  if(v.length>=2 && ((v[0]==='"' && v.at(-1)==='"') || (v[0]==="'" && v.at(-1)==="'"))) return v.slice(1,-1).trim();
+  return v;
+};
+const RAZORPAY_KEY_ID=cleanEnvSecret(process.env.RAZORPAY_KEY_ID);
+const RAZORPAY_KEY_SECRET=cleanEnvSecret(process.env.RAZORPAY_KEY_SECRET);
+const rp=(RAZORPAY_KEY_ID&&RAZORPAY_KEY_SECRET)
+  ?new (require("razorpay"))({key_id:RAZORPAY_KEY_ID,key_secret:RAZORPAY_KEY_SECRET})
   :null;
+console.log("Razorpay configuration",{
+  keyIdPrefix:RAZORPAY_KEY_ID?RAZORPAY_KEY_ID.slice(0,9):"missing",
+  keyIdLength:RAZORPAY_KEY_ID.length,
+  secretLength:RAZORPAY_KEY_SECRET.length,
+  configured:Boolean(rp)
+});
 
 const auth=(req,res,next)=>{
   const t=req.headers.authorization?.replace("Bearer ","");
@@ -267,11 +281,23 @@ app.post(["/api/orders","/api/create-order"],async(q,s)=>{
       if(!rp)throw Error("Online payment is not configured");
       if(!Number.isInteger(total)||total<100)throw Error("Payment amount must be at least 100 paise");
       try{
-        pay=await rp.orders.create({
-          amount:total,
-          currency:"INR",
-          receipt:id,
+        // Use Razorpay's documented HTTP Basic authentication directly.
+        // This avoids SDK credential-handling differences and normalizes
+        // accidental whitespace/quotes in Render environment variables.
+        const basic=Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString("base64");
+        const razorRes=await fetch("https://api.razorpay.com/v1/orders",{
+          method:"POST",
+          headers:{"Authorization":`Basic ${basic}`,"Content-Type":"application/json"},
+          body:JSON.stringify({amount:total,currency:"INR",receipt:id})
         });
+        const razorData=await razorRes.json().catch(()=>({}));
+        if(!razorRes.ok){
+          const err=new Error(razorData?.error?.description||`Razorpay API returned HTTP ${razorRes.status}`);
+          err.statusCode=razorRes.status;
+          err.error=razorData?.error||{};
+          throw err;
+        }
+        pay=razorData;
       }catch(err){
         const authFailed=err?.statusCode===401||err?.error?.code==="BAD_REQUEST_ERROR"&&/auth|key|secret|credential/i.test(err?.error?.description||"");
         err.httpStatus=authFailed?401:500;
@@ -286,20 +312,12 @@ app.post(["/api/orders","/api/create-order"],async(q,s)=>{
       order_id:pay?.id||null,
       amount:pay?.amount||total,
       currency:pay?.currency||"INR",
-      payment:pay?{keyId:process.env.RAZORPAY_KEY_ID,orderId:pay.id,amount:pay.amount,currency:pay.currency||"INR"}:null
+      payment:pay?{keyId:RAZORPAY_KEY_ID,orderId:pay.id,amount:pay.amount,currency:pay.currency||"INR"}:null
     })
   }catch(e){
     await c.query("ROLLBACK");
     const status=Number.isInteger(e?.httpStatus)?e.httpStatus:(e?.statusCode===401?401:400);
-    console.error("Razorpay/order creation failed", {
-      statusCode:e?.statusCode,
-      httpStatus:e?.httpStatus,
-      code:e?.error?.code,
-      description:e?.error?.description,
-      reason:e?.error?.reason,
-      message:e?.message
-    });
-    s.status(status).json({error:e?.error?.description||e?.message||"Unable to create order"});
+    s.status(status).json({error:e.message||"Unable to create order"});
   }finally{c.release()}
 });
 

@@ -225,6 +225,15 @@ app.get("/api/customers",auth,async(q,s)=>{
   }catch(e){s.status(500).json({error:"Database error"})}
 });
 
+app.delete("/api/customers/:id",auth,async(q,s)=>{
+  if(q.customer.type!=="admin")return s.status(403).json({error:"Admin only"});
+  try{
+    const {rows}=await pool.query("DELETE FROM customers WHERE id=$1 RETURNING id",[q.params.id]);
+    if(!rows[0])return s.status(404).json({error:"Customer not found"});
+    s.json({ok:true,id:rows[0].id});
+  }catch(e){s.status(500).json({error:"Unable to delete customer"})}
+});
+
 app.get("/api/orders",auth,async(q,s)=>{
   if(q.customer.type!=="admin")return s.status(403).json({error:"Admin only"});
   try{
@@ -276,6 +285,15 @@ app.post(["/api/orders","/api/create-order"],async(q,s)=>{
       "INSERT INTO order_items(order_id,product_id,product_name,unit_price_paise,quantity) VALUES($1,$2,$3,$4,$5)",
       [id,x.p.id,x.p.name,x.p.price_paise,x.qty]
     );
+    const normalized=normalizePhone(customer.phone);
+    if(normalized){
+      await c.query(
+        `INSERT INTO customers(id,phone,name,email,updated_at)
+         VALUES($1,$2,$3,$4,NOW())
+         ON CONFLICT(phone) DO UPDATE SET name=EXCLUDED.name,email=EXCLUDED.email,updated_at=NOW()`,
+        ["CU"+crypto.createHash("sha256").update(normalized).digest("hex").slice(0,20).toUpperCase(),normalized,customer.name,customer.email||null]
+      );
+    }
     let pay=null;
     if(paymentMethod==="ONLINE"){
       if(!rp)throw Error("Online payment is not configured");

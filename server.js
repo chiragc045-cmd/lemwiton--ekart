@@ -225,6 +225,18 @@ app.get("/api/customers",auth,async(q,s)=>{
   }catch(e){s.status(500).json({error:"Database error"})}
 });
 
+app.delete("/api/customers/:id",auth,async(q,s)=>{
+  if(q.customer.type!=="admin")return s.status(403).json({error:"Admin only"});
+  try{
+    const {rows}=await pool.query("DELETE FROM customers WHERE id=$1 RETURNING id",[q.params.id]);
+    if(!rows[0])return s.status(404).json({error:"Customer not found"});
+    for(const [sessionToken,session] of sessions){
+      if(session.type==="customer"&&session.id===q.params.id)sessions.delete(sessionToken);
+    }
+    s.json({ok:true,id:rows[0].id});
+  }catch(e){s.status(500).json({error:"Unable to delete customer"})}
+});
+
 app.get("/api/orders",auth,async(q,s)=>{
   if(q.customer.type!=="admin")return s.status(403).json({error:"Admin only"});
   try{

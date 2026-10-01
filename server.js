@@ -271,7 +271,6 @@ app.post(["/api/orders","/api/create-order"],async(q,s)=>{
           amount:total,
           currency:"INR",
           receipt:id,
-          payment_capture:1
         });
       }catch(err){
         const authFailed=err?.statusCode===401||err?.error?.code==="BAD_REQUEST_ERROR"&&/auth|key|secret|credential/i.test(err?.error?.description||"");
@@ -292,7 +291,15 @@ app.post(["/api/orders","/api/create-order"],async(q,s)=>{
   }catch(e){
     await c.query("ROLLBACK");
     const status=Number.isInteger(e?.httpStatus)?e.httpStatus:(e?.statusCode===401?401:400);
-    s.status(status).json({error:e.message||"Unable to create order"});
+    console.error("Razorpay/order creation failed", {
+      statusCode:e?.statusCode,
+      httpStatus:e?.httpStatus,
+      code:e?.error?.code,
+      description:e?.error?.description,
+      reason:e?.error?.reason,
+      message:e?.message
+    });
+    s.status(status).json({error:e?.error?.description||e?.message||"Unable to create order"});
   }finally{c.release()}
 });
 
